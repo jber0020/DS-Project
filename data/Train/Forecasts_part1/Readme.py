@@ -1,0 +1,1 @@
+It is assumed that the forecasts are available 48 hours in advance and remain the same throughout the 48-hour period.
