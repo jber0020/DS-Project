@@ -5,13 +5,9 @@
 # Imports
 import pandas as pd
 import tensorflow as tf
-from tensorflow import keras
 from sklearn.model_selection import train_test_split
 from utils import *
 from wrangling import *
-
-def data_split(data):
-    pass
 
 class ANN:
     """
@@ -33,7 +29,7 @@ class ANN:
         history = self.model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size)
         return self.model, history
 
-    def test_model(self):
+    def test_model(self, X_val, y_val):
         pass
 
     def save_model(self):
@@ -46,20 +42,19 @@ class ANN:
         pass
 
 if __name__ == "__main__":
-    data = pd.read_excel(get_root('data/Train/Actuals_part1.xlsx'))
+    data = pd.read_excel(get_root('data/elec_p4_dataset/Train/Actuals_part1.xlsx'))
     data = clean_data(data)
 
     X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
 
-    Model = ANN(input_size = len(X.columns), layers = [64, 32, 16])
-
-    print("Epochs:", Model.epochs)
+    Model = ANN(input_size = len(X.columns), layers = [64, 32, 16], metrics=['mae', 'mape'])
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 
     model, history = Model.train_model(X_train, y_train)
 
     train_mae = history.history['mae']
+    train_mape = history.history['mape']
 
-    mae_df = pd.DataFrame({'train_mae': train_mae})
+    mae_df = pd.DataFrame({'train_mae': train_mae, 'train_mape': train_mape})
     mae_df.to_csv(get_root("history.csv"))
