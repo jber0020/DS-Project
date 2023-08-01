@@ -12,6 +12,15 @@ Author: Joshua Berg
 import pandas as pd
 from utils import *
 
-actuals_part1 = pd.read_excel(get_root('data/Train/Actuals_part1.xlsx'))
+def clean_data(data):
+    data['Time'] = pd.to_datetime(data['Time'])
+    data['Day'] = data['Time'].dt.day
+    data['Month'] = data['Time'].dt.month
+    data['Hour'] = data['Time'].dt.hour
+    data['Year'] = data['Time'].dt.year
+    data.drop("Time", axis="columns", inplace=True)
+    
+    return data
 
-
+if __name__ == "__main__":
+    clean_data(pd.read_excel(get_root('data/Train/Actuals_part1.xlsx')))
