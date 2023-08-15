@@ -1,15 +1,143 @@
-
 <!DOCTYPE html>
-<html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Electricity Demand Forecast</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <meta charset="utf-8" />
+    <title>Electricity Demand Forecasting</title>
+    <style>
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .top {
+            height: 70px;
+            border-bottom: 1px solid white;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            padding: 20px;
+        }
+
+        .left-box {
+            height: 500px;
+            width: 500px;
+            border-width: 2px;
+            padding: 10px;
+            border-style: solid;
+        }
+
+        .button-box {
+            height: 300px;
+            width: 300px;
+            border: 1px solid black;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .pLeft {
+            text-align: left;
+            margin-left: 85px;
+        }
+
+        upload-button {
+            height: 400px;
+            width: 400px;
+            border: 1px solid black;
+            padding: 5px;
+            align-items: center;
+            margin-left: 1550px;
+            border-radius: 8px;
+        }
+
+
+
+
+        #imageSpace {
+            flex: 3;
+            border: 1px solid black;
+            height: 500px;
+            margin-right: 50px;
+            margin-left: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        #content {
+            flex: 4;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Welcome to the Electricity Demand Forecast App</h1>
-    <button onclick="fetchSampleData()">Fetch Sample Data</button>
-    <div id="apiResponse"></div>
+    <div class="top">
+        <h1 class="text-white"> Elctricity Demand Forecasting System </h1>
+    </div>
+    <br />
+    <p class="pLeft">
+        <td>
+            please select your model..
+        </td>
+        <select>
+            <option>
+                Model1
+            </option>
+            <option>
+                Model2
+            </option>
+            <option>
+                Model3
+            </option>
+        </select>
+
+
+        <upload-button>
+            Upload Button
+        </upload-button>
+    </p>
+
+    <div class="pLeft">
+        <label>
+            <input type="checkbox" name="filter1" value="option1">
+            Option 1
+        </label>
+        <label>
+            <input type="checkbox" name="filter2" value="option2">
+            Option 2
+        </label>
+    </div>
+
+
+    <div id="content">
+        <div id="imageSpace">
+            <span>Model Area</span>
+        </div>
+
+
+        <div id="imageSpace">
+            <span>Data Base</span>
+        </div>
+    </div>
+
 
 </body>
 </html>
