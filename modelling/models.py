@@ -11,6 +11,7 @@ from wrangling import *
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from statsmodels.tsa.arima.model import ARIMA as sARIMA
 
+
 class xgBoost:
     """
     xgBoost Model
