@@ -13,8 +13,11 @@ def index():
 def sample_endpoint():
     return jsonify({"message": "Hello from the API!"})
 
-@app.route('/api/upload_files')
-def data_upload_endpoint():
-    # Josh preprocessing script which will clean the data
-    # Take the cleaned data and append data to database 
-    return jsonify({"message": "Hello from the API!"})
+# @app.route('/api/upload_files')
+# def data_upload_endpoint():
+#     # Use josh assertion script - assertion.py
+#     # cleaned_data = assertion.py
+#     # # Josh cleaning and preprocessing script - preprocess.py
+#     # cleaned_data = 
+#     # # Joshs forecasting script - forecast.py
+#     # return jsonify({"message": "Hello from the API!"})
