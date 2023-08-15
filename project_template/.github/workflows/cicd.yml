@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - ryan-docker
 
 jobs:
   build_and_push:
