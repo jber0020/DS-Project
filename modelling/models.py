@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from utils import *
 from wrangling import *
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
+from statsmodels.tsa.arima.model import ARIMA as sARIMA
 
 class xgBoost:
     """
@@ -22,7 +23,10 @@ class ARIMA:
     """
     ARIMA Model
     """
-    def __init__(self) -> None:
+    def __init__(self, data, p, d, q) -> None:
+        self.model = sARIMA(data, order=(p, d, q))
+        self.fit = self.model.fit()
+        print(self.fit.summary())
         pass
 
 class LSTM:
@@ -61,7 +65,7 @@ class ANN:
         return results
 
     def save_model(self, filepath):
-        model.save(filepath)
+        self.model.save(filepath)
 
     def load_model(self):
         pass
@@ -69,18 +73,11 @@ class ANN:
     def predict(self):
         pass
 
-if __name__ == "__main__":
+
+def run_benchmarks():
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
 
     X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
-
-    Model = ANN(input_size = len(X.columns), layers = [64, 32, 16], metrics=['mse', 'mae', 'mape'])
-
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
-
-    model, history = Model.train_model(X_train, y_train)
-
-    Model.test_model(X_val, y_val)
 
     # Naive
     pred = y.shift(1)
@@ -103,11 +100,41 @@ if __name__ == "__main__":
     print("MAE:", mean_absolute_error(y[24*7:], pred[24*7:]))
     print("MAPE:", mean_absolute_percentage_error(y[24*7:], pred[24*7:])*100)
 
-    """
-    train_mae = history.history['mae']
-    train_mse = history.history['mse']
-    train_mape = history.history['mape']
+def run_ANN():
+    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
 
-    mae_df = pd.DataFrame({'train_mse':train_mse, 'train_mae': train_mae, 'train_mape': train_mape})
-    mae_df.to_csv(get_root("history.csv"))
-    """
+    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
+
+    X = (X-X.mean()) / X.std()
+
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
+
+    learning_rates = [0.1, 0.01, 0.001, 0.0001]
+    layers = [
+        [64, 32, 16],
+        [64, 32],
+        [32, 16, 8],
+        [32, 16],
+        [128, 64, 32]
+    ]
+
+    for lr in learning_rates:
+        for l in layers:
+            Model = ANN(input_size = len(X.columns), layers = l, metrics=['mse', 'mae', 'mape'], learning_rate=lr)
+            model, history = Model.train_model(X_train, y_train)
+            val_loss, mse, mae, mape = Model.test_model(X_val, y_val)
+            results = open("results.txt", 'a')
+            results.write("{},{},{},{},{},{}\n".format(lr, l, val_loss, mse, mae, mape))
+            results.close()
+
+def run_ARIMA():
+    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+
+    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
+
+    model = ARIMA(data=y, p=24, d=1, q=0)
+
+
+
+if __name__ == "__main__":
+    run_ARIMA()
