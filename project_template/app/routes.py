@@ -12,3 +12,10 @@ def index():
 @app.route('/api/sample_endpoint')
 def sample_endpoint():
     return jsonify({"message": "Hello from the API!"})
+
+
+@app.route('/api/upload_file')
+def data_upload_endpoint():
+    # Josh preprocessing script which will clean the data
+    # Take the cleaned data and append data to database 
+    return jsonify({"message": "Hello from the API!"})
