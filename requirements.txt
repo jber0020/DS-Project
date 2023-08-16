@@ -47,3 +47,4 @@ tzdata==2023.3
 urllib3==1.26.16
 Werkzeug==2.3.6
 wrapt==1.15.0
+Flask==2.0.1
