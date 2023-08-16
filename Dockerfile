@@ -1,6 +1,5 @@
-
 # Use an official Python runtime as the base image
-FROM python:3.8-slim
+FROM python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -10,6 +9,9 @@ COPY ./requirements.txt /app/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Explicitly install gunicorn
+RUN pip install gunicorn
 
 # Copy the entire project into the container
 COPY . /app/
