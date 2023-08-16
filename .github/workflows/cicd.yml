@@ -29,7 +29,7 @@ jobs:
   #     run: terraform apply -auto-approve -input=false tfplan
 
   build_and_push:
-    needs: terraform
+    # needs: terraform
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
