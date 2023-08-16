@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - ryan-terraform
+      - ryanh-terraform
 
 jobs:
   # terraform:
