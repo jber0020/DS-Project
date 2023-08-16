@@ -1,16 +1,36 @@
-
 name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
-      - ryanh-docker
+      - ryan-terraform
 
 jobs:
-  build_and_push:
-    runs-on: ubuntu-latest
+  # terraform:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
 
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v1
+
+  #   - name: Terraform Init
+  #     run: terraform init terraform/
+
+  #   - name: Terraform Validate
+  #     run: terraform validate terraform/
+
+  #   - name: Terraform Plan
+  #     run: terraform plan -out=tfplan -input=false terraform/
+
+  #   - name: Terraform Apply
+  #     run: terraform apply -auto-approve -input=false tfplan
+
+  build_and_push:
+    needs: terraform
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
