@@ -12,7 +12,10 @@ Author: Joshua Berg
 import pandas as pd
 from utils import *
 
-def clean_data(data):
+def ANN_clean_data(data):
+    """
+    This function prepares the data into a format for the ANN model
+    """
     # Add previous day's value
     data['Lag_1day'] = data['Time'].apply(lambda x: data.loc[data['Time'] == (x - pd.DateOffset(days=1)), 
                                                         'Load (kW)'].values[0] if (x - pd.DateOffset(days=1)) in data['Time'].values else None)
@@ -35,6 +38,9 @@ def clean_data(data):
     return data
 
 def merge_data(data1, data2):
+    """
+    Merge the two given datasets
+    """
     merged = pd.concat([data1, data2], ignore_index=True)
     merged = merged.sort_values('Time')
     merged = merged.drop_duplicates(subset='Time', keep='last')
@@ -48,5 +54,5 @@ if __name__ == "__main__":
     data2['Time'] = pd.to_datetime(data2['Time'])
 
     data = merge_data(data1, data2)
-    data= clean_data(data)
+    data= ANN_clean_data(data)
     data.to_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'), index=False)

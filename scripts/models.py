@@ -10,6 +10,8 @@ from utils import *
 from wrangling import *
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from statsmodels.tsa.arima.model import ARIMA as sARIMA
+import numpy as np
+from scipy.optimize import minimize
 
 
 class xgBoost:
@@ -82,7 +84,7 @@ def run_benchmarks():
 
     # Naive
     pred = y.shift(1)
-    print("===Naive Model===")
+    print("===1h Naive Model===")
     print("MSE:", mean_squared_error(y[1:], pred[1:]))
     print("MAE:", mean_absolute_error(y[1:], pred[1:]))
     print("MAPE:", mean_absolute_percentage_error(y[1:], pred[1:])*100)
@@ -101,12 +103,65 @@ def run_benchmarks():
     print("MAE:", mean_absolute_error(y[24*7:], pred[24*7:]))
     print("MAPE:", mean_absolute_percentage_error(y[24*7:], pred[24*7:])*100)
 
+    # Random Walk with Drift
+    np.random.seed(52)
+    n_steps = 48
+    drift = 1
+    sigma = y.std()
+    mapes = []
+    maes = []
+    mses = []
+
+    # Define Random Walk with Drift
+    def random_walk(drift):
+        for i in range(len(y)-48):
+            walk = [y[i]]
+            for _ in range(n_steps):
+                walk.append(walk[-1] + drift + np.random.normal(scale=sigma))
+            actuals = y[i+1:i+49]
+            mses.append(mean_squared_error(actuals, walk[1:]))
+            maes.append(mean_absolute_error(actuals, walk[1:]))
+            mapes.append(mean_absolute_percentage_error(actuals, walk[1:])*100)
+        return np.mean(mses)
+    
+    # Optimise Drift (Uncomment to Run, takes ages to optimise)
+    # drift = minimize(random_walk, drift).x[0]
+    # print("Best Drift:", drift)
+
+    mapes = []
+    maes = []
+    mses = []
+
+    # Run Optimised Random Walk
+    random_walk(drift)
+    print("===Random Walk with Drift===")
+    print("MSE:", np.mean(mses))
+    print("MAE:", np.mean(maes))
+    print("MAPE:", np.mean(mapes))
+
+
+
 def run_ANN():
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
 
     X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
 
-    X = (X-X.mean()) / X.std()
+    # Remove Unneeded Columns
+    X.drop(['Day', 'Pressure_kpa', 'Cloud Cover (%)', 'Humidity (%)'], axis=1, inplace=True)
+
+    # Optional Drop 1 Day Lag, Uncomment to Include
+    X.drop(['Lag_1day'], axis='columns', inplace=True)
+
+    # Normalisation
+    normalised_columns = ~X.columns.isin(['Hour', 'Month'])
+    X.loc[:,normalised_columns] = (X.loc[:,normalised_columns]-X.loc[:,normalised_columns].mean()) / X.loc[:,normalised_columns].std()
+
+    # Sine/Cosine Encoding
+    X['Hour Sin'] = np.sin(X['Hour'] * 2 * np.pi / 24)
+    X['Hour Cos'] = np.cos(X['Hour'] * 2 * np.pi / 24)
+    X['Month Sin'] = np.sin(X['Month'] * 2 * np.pi / 12)
+    X['Month Cos'] = np.cos(X['Month'] * 2 * np.pi / 12)
+    X.drop(['Hour', 'Month'], axis='columns', inplace=True)
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 
@@ -138,4 +193,4 @@ def run_ARIMA():
 
 
 if __name__ == "__main__":
-    run_ARIMA()
+    run_ANN()
