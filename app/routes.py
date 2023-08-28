@@ -13,6 +13,11 @@ def index():
 def sample_endpoint():
     return jsonify({"message": "Hello from the API!"})
 
+@app.route('/api/upload_and_forecast')
+def sample_endpoint():
+    # Josh script number 1 - takes the uploaded file and stores in database
+    return jsonify({"message": "Lets forecast"})
+
 # @app.route('/api/upload_files')
 # def data_upload_endpoint():
 #     # Use josh assertion script - assertion.py

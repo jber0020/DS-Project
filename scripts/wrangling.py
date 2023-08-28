@@ -50,3 +50,6 @@ if __name__ == "__main__":
     data = merge_data(data1, data2)
     data= clean_data(data)
     data.to_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'), index=False)
+
+    # Upload data to database - merged data
+    print(data)
