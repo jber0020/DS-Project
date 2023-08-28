@@ -11,6 +11,8 @@ from sklearn.model_selection import GridSearchCV
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import LeakyReLU
+
 
 class ImprovedLSTMForecaster:
     def __init__(self, input_seq_len=72, output_seq_len=1, n_features=17):
@@ -70,16 +72,21 @@ class ImprovedLSTMForecaster:
         return (X_train, y_train), (X_val, y_val), (X_test, y_test)
 
     
-    def build_model(self, lstm_layers=(50,), dropout=0.2, learning_rate=0.001, activation='tanh', regularization_rate=0.01):
+    def build_model(self, lstm_layers=(50,), dropout=0.2, learning_rate=0.001, activation='tanh', regularization_rate=0.01, alpha=0.01):
         model = Sequential()
         
         for i, units in enumerate(lstm_layers):
             return_seq = True if i < len(lstm_layers) - 1 else False
             if i == 0:
-                model.add(LSTM(units, activation=activation, input_shape=(self.input_seq_len, self.n_features),
-                               return_sequences=return_seq, kernel_regularizer=l2(regularization_rate)))
+                model.add(LSTM(units, activation=None if activation == 'leaky_relu' else activation,
+                            input_shape=(self.input_seq_len, self.n_features), return_sequences=return_seq, 
+                            kernel_regularizer=l2(regularization_rate)))
             else:
-                model.add(LSTM(units, activation=activation, return_sequences=return_seq, kernel_regularizer=l2(regularization_rate)))
+                model.add(LSTM(units, activation=None if activation == 'leaky_relu' else activation, 
+                            return_sequences=return_seq, kernel_regularizer=l2(regularization_rate)))
+
+            if activation == 'leaky_relu':
+                model.add(LeakyReLU(alpha=alpha))
             model.add(Dropout(dropout))
         
         model.add(Dense(self.output_seq_len))
@@ -87,6 +94,7 @@ class ImprovedLSTMForecaster:
         model.compile(optimizer=optimizer, loss='mse', metrics=['mse', 'mape'])
         self.model = model
         return model
+
     
     def train(self, X_train, y_train, X_val, y_val, epochs=10, batch_size=64, patience=5):
         if self.model is None:
@@ -133,8 +141,9 @@ forecaster_improved = ImprovedLSTMForecaster(input_seq_len=24, output_seq_len=1,
 param_grid_improved = {
     'lstm_layers': [(64, 128)],
     'dropout': [0.2],
-    'learning_rate': [0.01],
-    'activation': ['tanh'],
+    'learning_rate': [0.0001],
+    'activation': ['leaky_relu'],
+    'alpha': [0.01, 0.05, 0.1],  # example values
     'regularization_rate': [0.01]
 }
 
