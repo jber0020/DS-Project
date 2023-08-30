@@ -9,154 +9,89 @@ from sklearn.model_selection import train_test_split
 from utils import *
 from wrangling import *
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
-from statsmodels.tsa.arima.model import ARIMA as sARIMA
+from statsmodels.tsa.arima.model import ARIMA as ARIMA
 import numpy as np
-from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+from xgboost import XGBRegressor
 
 
-class xgBoost:
-    """
-    xgBoost Model
-    """
-    def __init__(self) -> None:
-        pass
+class XGBoostForecaster:
+    def __init__(self, n_estimators=100, max_depth=3, learning_rate=0.1):
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.learning_rate = learning_rate
+        self.model = None
+
+    def fit(self, X_train, y_train):
+        self.model = XGBRegressor(n_estimators=self.n_estimators, max_depth=self.max_depth, learning_rate=self.learning_rate)
+        self.model.fit(X_train, y_train)
+
+    def predict(self, X):
+        if self.model is None:
+            print("Model not trained yet. Call `fit` method first.")
+            return None
+
+        y_pred = self.model.predict(X)
+        return y_pred
 
 
-class ARIMA:
-    """
-    ARIMA Model
-    """
-    def __init__(self, data, p, d, q) -> None:
-        self.model = sARIMA(data, order=(p, d, q))
-        self.fit = self.model.fit()
-        print(self.fit.summary())
-        pass
+class ARIMAForecaster:
+    def __init__(self, p, d, q):
+        self.p = p
+        self.d = d
+        self.q = q
+        self.model = None
 
-class WindowGenerator():
-    def __init__(self, input_width, label_width, shift,
-               train_df, val_df, test_df,
-               label_columns=None):
-    # Store the raw data.
-        self.train_df = train_df
-        self.val_df = val_df
-        self.test_df = test_df
+    def fit(self, train_data):
+        self.model = ARIMA(train_data, order=(self.p, self.d, self.q))
+        self.model_fit = self.model.fit()
 
-        # Work out the label column indices.
-        self.label_columns = label_columns
-        if label_columns is not None:
-            self.label_columns_indices = {name: i for i, name in
-                                            enumerate(label_columns)}
-            self.column_indices = {name: i for i, name in
-                                enumerate(train_df.columns)}
+    def predict(self, steps):
+        if self.model is None:
+            print("Model not trained yet. Call `fit` method first.")
+            return None
 
-        # Work out the window parameters.
-        self.input_width = input_width
-        self.label_width = label_width
-        self.shift = shift
+        forecast = self.model_fit.forecast(steps=steps)
+        return forecast
 
-        self.total_window_size = input_width + shift
+    def evaluate(self, test_data, forecast_steps):
+        mse_scores = []
+        mae_scores = []
+        mape_scores = []
 
-        self.input_slice = slice(0, input_width)
-        self.input_indices = np.arange(self.total_window_size)[self.input_slice]
+        num_intervals = len(test_data) // forecast_steps
 
-        self.label_start = self.total_window_size - self.label_width
-        self.labels_slice = slice(self.label_start, None)
-        self.label_indices = np.arange(self.total_window_size)[self.labels_slice]
+        for i in range(num_intervals):
+            start_idx = i * forecast_steps
+            end_idx = (i + 1) * forecast_steps
 
-    def __repr__(self):
-        return '\n'.join([
-            f'Total window size: {self.total_window_size}',
-            f'Input indices: {self.input_indices}',
-            f'Label indices: {self.label_indices}',
-            f'Label column name(s): {self.label_columns}'])
-  
-    def split_window(self, features):
-        inputs = features[:, self.input_slice, :]
-        labels = features[:, self.labels_slice, :]
-        if self.label_columns is not None:
-            labels = tf.stack(
-                [labels[:, :, self.column_indices[name]] for name in self.label_columns],
-                axis=-1)
+            interval_test_data = test_data.iloc[start_idx:end_idx]
 
-        # Slicing doesn't preserve static shape information, so set the shapes
-        # manually. This way the `tf.data.Datasets` are easier to inspect.
-        inputs.set_shape([None, self.input_width, None])
-        labels.set_shape([None, self.label_width, None])
+            forecast = self.model_fit.forecast(steps=forecast_steps)
+            true_values = interval_test_data
 
-        return inputs, labels
+            mse_scores.append(mean_squared_error(true_values, forecast))
+            mae_scores.append(mean_absolute_error(true_values, forecast))
+            mape_scores.append(mean_absolute_percentage_error(true_values, forecast))
 
-    def make_dataset(self, data):
-        data = np.array(data, dtype=np.float32)
-        ds = tf.keras.utils.timeseries_dataset_from_array(
-            data=data,
-            targets=None,
-            sequence_length=self.total_window_size,
-            sequence_stride=1,
-            shuffle=True,
-            batch_size=32,)
+        avg_mse = np.mean(mse_scores)
+        avg_mae = np.mean(mae_scores)
+        avg_mape = np.mean(mape_scores) * 100
 
-        ds = ds.map(self.split_window)
+        return avg_mse, avg_mae, avg_mape
 
-        return ds
-    @property
-    def train(self):
-        return self.make_dataset(self.train_df)
+    def plot_forecast(self, train_data, test_data, forecast, date_range):
+        plt.figure(figsize=(12, 6))
+        plt.plot(train_data.index, train_data, label='Train Data')
+        plt.plot(test_data.index, test_data, label='Test Data')
+        plt.plot(date_range, forecast, label='ARIMA Forecast', color='red')
 
-    @property
-    def val(self):
-        return self.make_dataset(self.val_df)
+        plt.xlabel('Time')
+        plt.ylabel('Load (kW)')
+        plt.title('ARIMA Forecasting')
+        plt.legend()
+        plt.show()
 
-    @property
-    def test(self):
-        return self.make_dataset(self.test_df)
-
-class LSTM:
-    """
-    LSTM RNN Model
-    """
-    def __init__(self, input_shape, num_features, layers = [128], epochs=100, batch_size=32, metrics=['mae', 'mse', 'mape']):
-        self.batch_size = batch_size
-        self.epochs = epochs
-        self.metrics= metrics
-        self.model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(units = layers[0], input_shape=input_shape, return_sequences=False),
-            tf.keras.layers.Dense(units=48, kernel_initializer=tf.initializers.zeros())
-        ])
-        self.model.compile(loss="mean_squared_error", metrics=self.metrics, optimizer=tf.keras.optimizers.Adam())
-
-    def LSTM_clean_data(data):
-        data['Time'] = pd.to_datetime(data['Time'])
-
-        data['Lag_1week'] = data['Time'].apply(lambda x: data.loc[data['Time'] == (x - pd.DateOffset(days=7)), 
-                                                            'Load (kW)'].values[0] if (x - pd.DateOffset(days=7)) in data['Time'].values else None)
-
-        # Clean time values
-        data['Day'] = data['Time'].dt.day
-        data['Month'] = data['Time'].dt.month
-        data['Hour'] = data['Time'].dt.hour
-        data['Year'] = data['Time'].dt.year
-        data['Weekday'] = data['Time'].dt.weekday
-        data.drop("Time", axis="columns", inplace=True)
-
-        # Normalisation
-        normalised_columns = ~data.columns.isin(['Hour', 'Month',"Load (kW)"])
-        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
-
-        # Sine/Cosine Encoding
-        data['Hour Sin'] = np.sin(data['Hour'] * 2 * np.pi / 24)
-        data['Hour Cos'] = np.cos(data['Hour'] * 2 * np.pi / 24)
-        data['Month Sin'] = np.sin(data['Month'] * 2 * np.pi / 12)
-        data['Month Cos'] = np.cos(data['Month'] * 2 * np.pi / 12)
-        data.drop(['Hour', 'Month'], axis='columns', inplace=True)
-        
-        return data
-    
-    def train_model(self, train, val):
-        self.model.fit(train, epochs=self.epochs, validation_data=val, 
-                       callbacks=[tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode='min')])
-    
-    def test_model(self, X_val, y_val):
-        pass
 
 class ANN:
     """
@@ -352,38 +287,97 @@ def ANN_tuning():
             results.write("{},{},{},{},{},{},{}\n".format(lr, l, val_loss, mse, mae, mape, "yes"))
             results.close()
 
+
 def run_ARIMA():
+    # Load your dataset
+    print("Reading Data...")
+    df = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    df['Time'] = pd.to_datetime(df['Time'])
+
+    # Split the data into train and test sets (using 80% for training and 20% for testing)
+    print("Splitting Data...")
+    split_index = int(0.8 * len(df))
+    train_data = df['Load (kW)'].iloc[:split_index]
+    test_data = df['Load (kW)'].iloc[split_index:]
+
+    # Define the forecasting period (48 hours)
+    forecast_steps = 48
+
+    input_sizes = [5, 12, 24, 48, 72, 24*7]
+
+    results = open("ARIMA_results.csv", "w")
+    results.write("input_size,mse,mae,mape\n")
+    results.close()
+
+    for i in input_sizes:
+        # Set up the forecaster
+        print("===== Input Size {} =====".format(i))
+        print("Creating ARIMA...")
+        forecaster = ARIMAForecaster(p=i, d=1, q=0)  # Using a week's worth of lagged inputs
+
+        # Train the model on the entire dataset
+        print("Training Model...")
+        forecaster.fit(train_data)
+
+        # Evaluate the model using 2-day intervals
+        print("Evaluating Model...")
+        avg_mse, avg_mae, avg_mape = forecaster.evaluate(test_data, forecast_steps)
+
+        print(f"Average MSE: {avg_mse:.2f}")
+        print(f"Average MAE: {avg_mae:.2f}")
+        print(f"Average MAPE: {avg_mape:.2f}%")
+
+        results = open("ARIMA_results.csv", "a")
+        results.write("{},{},{},{}\n".format(i, avg_mse, avg_mae, avg_mape))
+        results.close()
+
+def run_xgBoost():
+    print("Reading Data...")
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    data['Time'] = pd.to_datetime(data['Time'])
 
-    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
+    # Add previous day's value
+    data['Lag_1day'] = data['Time'].apply(lambda x: data.loc[data['Time'] == (x - pd.DateOffset(days=1)), 
+                                                            'Load (kW)'].values[0] if (x - pd.DateOffset(days=1)) in data['Time'].values else None)
+    data['Lag_2day'] = data['Time'].apply(lambda x: data.loc[data['Time'] == (x - pd.DateOffset(days=2)), 
+                                                            'Load (kW)'].values[0] if (x - pd.DateOffset(days=2)) in data['Time'].values else None)
+    data['Lag_1week'] = data['Time'].apply(lambda x: data.loc[data['Time'] == (x - pd.DateOffset(days=7)), 
+                                                            'Load (kW)'].values[0] if (x - pd.DateOffset(days=7)) in data['Time'].values else None)
+    # Remove first week
+    cutoff = data['Time'].dt.date.min() + pd.DateOffset(days=7)
+    data = data[data['Time'].dt.date >= cutoff.date()]
 
-    model = ARIMA(data=y, p=24, d=1, q=0)
+    # Clean time values
+    data['Day'] = data['Time'].dt.day
+    data['Month'] = data['Time'].dt.month
+    data['Hour'] = data['Time'].dt.hour
+    data['Year'] = data['Time'].dt.year
+    data['Weekday'] = data['Time'].dt.weekday
+    data.drop("Time", axis="columns", inplace=True)
 
-def LSTM_Tuning():
-    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    X = data.drop('Load (kW)', axis='columns', inplace=False)
+    y = data['Load (kW)']
 
-    data = LSTM.LSTM_clean_data(data)
+    # Split data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
-    n = len(data)
+    # Set up the forecaster and fit the model
+    forecaster = XGBoostForecaster()
+    forecaster.fit(X_train, y_train)
 
-    train_df = data[0:int(n*0.7)]
-    val_df = data[int(n*0.7):int(n*0.9)]
-    test_df = data[int(n*0.9):]
+    # Make predictions
+    y_pred = forecaster.predict(X_test)
 
-    num_features = data.shape[1]
+    # Calculate metrics
+    mse = mean_squared_error(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    mape = mean_absolute_percentage_error(y_test, y_pred) * 100
 
-    multi_window = WindowGenerator(input_width=24,
-                                   label_width=48,
-                                   shift=48,
-                                   train_df=train_df,
-                                   val_df=val_df,
-                                   test_df=test_df,
-                                   label_columns=['Load (kW)'])
-
-    Model = LSTM(input_shape=(24, num_features), num_features=num_features)
-
-    Model.train_model(multi_window.train, multi_window.val)
+    print(f"Mean Squared Error: {mse:.2f}")
+    print(f"Mean Absolute Error: {mae:.2f}")
+    print(f"Mean Absolute Error: {mape:.2f}")
 
 
 if __name__ == "__main__":
-    run_benchmarks()
+    run_xgBoost()
+    run_ARIMA()
