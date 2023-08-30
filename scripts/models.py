@@ -253,6 +253,13 @@ def run_benchmarks():
     print("MAE:", mean_absolute_error(y[24:], pred[24:]))
     print("MAPE:", mean_absolute_percentage_error(y[24:], pred[24:])*100)
 
+    # Seasonal Naive - 2 Day
+    pred = y.shift(48)
+    print("===48h Naive Model===")
+    print("MSE:", mean_squared_error(y[48:], pred[48:]))
+    print("MAE:", mean_absolute_error(y[48:], pred[48:]))
+    print("MAPE:", mean_absolute_percentage_error(y[48:], pred[48:])*100)
+
     # Seasonal Naive - Week
     pred = y.shift(24*7)
     print("===1week Naive Model===")
@@ -379,4 +386,4 @@ def LSTM_Tuning():
 
 
 if __name__ == "__main__":
-    LSTM_Tuning()
+    run_benchmarks()
