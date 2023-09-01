@@ -151,9 +151,9 @@ def LSTM_tuning(param_grid, weather=True):
     # Splitting the data
     (X_train, y_train), (X_val, y_val), (X_test, y_test) = forecaster_improved.preprocess_data(df, test_size=0.2, weather=weather)
 
-    results = open("LSTM_results_1week.csv", "w")
-    results.write("layers,learning_rate,val_loss,mse,mae,mape\n")
-    results.close()
+    # results = open("LSTM_results_1week.csv", "w")
+    # results.write("layers,learning_rate,val_loss,mse,mae,mape\n")
+    # results.close()
 
     for lr in learning_rates:
         for l in layers:
@@ -169,7 +169,7 @@ if __name__=="__main__":
     # Parameters for testing
     param_grid = {
         'lstm_layers': [(64, 64), (128, 64), (256, 128), (512, 256), (64, 32)],
-        'learning_rate': [0.0001, 0.001, 0.01],
+        'learning_rate': [0.001, 0.01],
     }
     LSTM_tuning(param_grid=param_grid, weather=False)
 
