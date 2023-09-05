@@ -1,14 +1,22 @@
 ﻿<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
     <meta charset="utf-8" />
     <title>Electricity Demand Forecasting</title>
+    <link href='https://fonts.googleapis.com/css?family=Source Sans Pro' rel='stylesheet'>
     <style>
+        body {
+            font-family: 'Source Sans Pro';
+            font-size: 22px;
+        }
+
         .blue-bold-text {
             color: blue;
             font-weight: bold;
         }
+
         /* git hub button */
         .btn {
             display: grid;
@@ -16,26 +24,26 @@
             background: #e3edf7;
             padding: 1.4em;
             border-radius: 10px;
-            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15), -6px -6px 10px -1px rgba(255,255,255,0.7);
-            border: 1px solid rgba(0,0,0,0);
+            box-shadow: 6px 6px 10px -1px rgba(0, 0, 0, 0.15), -6px -6px 10px -1px rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0);
             cursor: pointer;
             transition: transform 0.5s;
         }
 
-            .btn:hover {
-                box-shadow: inset 4px 4px 6px -1px rgba(0,0,0,0.2), inset -4px -4px 6px -1px rgba(255,255,255,0.7), -0.5px -0.5px 0px rgba(255,255,255,1), 0.5px 0.5px 0px rgba(0,0,0,0.15), 0px 12px 10px -10px rgba(0,0,0,0.05);
-                border: 1px solid rgba(0,0,0,0.1);
-                transform: translateY(0.5em);
-            }
+        .btn:hover {
+            box-shadow: inset 4px 4px 6px -1px rgba(0, 0, 0, 0.2), inset -4px -4px 6px -1px rgba(255, 255, 255, 0.7), -0.5px -0.5px 0px rgba(255, 255, 255, 1), 0.5px 0.5px 0px rgba(0, 0, 0, 0.15), 0px 12px 10px -10px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transform: translateY(0.5em);
+        }
 
-            .btn svg {
-                transition: transform 0.5s;
-            }
+        .btn svg {
+            transition: transform 0.5s;
+        }
 
-            .btn:hover svg {
-                transform: scale(0.9) rotate(360deg);
-                fill: #333333;
-            }
+        .btn:hover svg {
+            transform: scale(0.9) rotate(360deg);
+            fill: #333333;
+        }
 
 
         /* git hub button */
@@ -111,6 +119,7 @@
             transform: rotateX(90deg) translateZ(-40px);
             filter: blur(12px);
         }
+
         /* 3D model */
 
         label {
@@ -126,7 +135,6 @@
         .top {
             height: 70px;
             background: linear-gradient(to right, #1e3c72, #2a5298);
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             padding: 20px;
@@ -160,8 +168,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-left: 85px; /* 使用了pLeft类的左边距 */
-            max-width: calc(100% - 170px); /* 减去左边距和一些可能的右边距 */
+            margin-left: 85px;
+            /* 使用了pLeft类的左边距 */
+            max-width: calc(100% - 170px);
+            /* 减去左边距和一些可能的右边距 */
         }
 
         upload-button {
@@ -170,7 +180,6 @@
             border: 1px solid black;
             padding: 5px;
             align-items: center;
-            margin-left: 1550px;
             border-radius: 8px;
         }
 
@@ -181,93 +190,93 @@
             height: 80px;
         }
 
-            .lds-roller div {
-                animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-                transform-origin: 40px 40px;
-            }
+        .lds-roller div {
+            animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            transform-origin: 40px 40px;
+        }
 
-                .lds-roller div:after {
-                    content: " ";
-                    display: block;
-                    position: absolute;
-                    width: 7px;
-                    height: 7px;
-                    border-radius: 50%;
-                    background: black;
-                    margin: -4px 0 0 -4px;
-                }
+        .lds-roller div:after {
+            content: " ";
+            display: block;
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: black;
+            margin: -4px 0 0 -4px;
+        }
 
-                .lds-roller div:nth-child(1) {
-                    animation-delay: -0.036s;
-                }
+        .lds-roller div:nth-child(1) {
+            animation-delay: -0.036s;
+        }
 
-                    .lds-roller div:nth-child(1):after {
-                        top: 63px;
-                        left: 63px;
-                    }
+        .lds-roller div:nth-child(1):after {
+            top: 63px;
+            left: 63px;
+        }
 
-                .lds-roller div:nth-child(2) {
-                    animation-delay: -0.072s;
-                }
+        .lds-roller div:nth-child(2) {
+            animation-delay: -0.072s;
+        }
 
-                    .lds-roller div:nth-child(2):after {
-                        top: 68px;
-                        left: 56px;
-                    }
+        .lds-roller div:nth-child(2):after {
+            top: 68px;
+            left: 56px;
+        }
 
-                .lds-roller div:nth-child(3) {
-                    animation-delay: -0.108s;
-                }
+        .lds-roller div:nth-child(3) {
+            animation-delay: -0.108s;
+        }
 
-                    .lds-roller div:nth-child(3):after {
-                        top: 71px;
-                        left: 48px;
-                    }
+        .lds-roller div:nth-child(3):after {
+            top: 71px;
+            left: 48px;
+        }
 
-                .lds-roller div:nth-child(4) {
-                    animation-delay: -0.144s;
-                }
+        .lds-roller div:nth-child(4) {
+            animation-delay: -0.144s;
+        }
 
-                    .lds-roller div:nth-child(4):after {
-                        top: 72px;
-                        left: 40px;
-                    }
+        .lds-roller div:nth-child(4):after {
+            top: 72px;
+            left: 40px;
+        }
 
-                .lds-roller div:nth-child(5) {
-                    animation-delay: -0.18s;
-                }
+        .lds-roller div:nth-child(5) {
+            animation-delay: -0.18s;
+        }
 
-                    .lds-roller div:nth-child(5):after {
-                        top: 71px;
-                        left: 32px;
-                    }
+        .lds-roller div:nth-child(5):after {
+            top: 71px;
+            left: 32px;
+        }
 
-                .lds-roller div:nth-child(6) {
-                    animation-delay: -0.216s;
-                }
+        .lds-roller div:nth-child(6) {
+            animation-delay: -0.216s;
+        }
 
-                    .lds-roller div:nth-child(6):after {
-                        top: 68px;
-                        left: 24px;
-                    }
+        .lds-roller div:nth-child(6):after {
+            top: 68px;
+            left: 24px;
+        }
 
-                .lds-roller div:nth-child(7) {
-                    animation-delay: -0.252s;
-                }
+        .lds-roller div:nth-child(7) {
+            animation-delay: -0.252s;
+        }
 
-                    .lds-roller div:nth-child(7):after {
-                        top: 63px;
-                        left: 17px;
-                    }
+        .lds-roller div:nth-child(7):after {
+            top: 63px;
+            left: 17px;
+        }
 
-                .lds-roller div:nth-child(8) {
-                    animation-delay: -0.288s;
-                }
+        .lds-roller div:nth-child(8) {
+            animation-delay: -0.288s;
+        }
 
-                    .lds-roller div:nth-child(8):after {
-                        top: 56px;
-                        left: 12px;
-                    }
+        .lds-roller div:nth-child(8):after {
+            top: 56px;
+            left: 12px;
+        }
 
         @keyframes lds-roller {
             0% {
@@ -286,18 +295,18 @@
             height: 80px;
         }
 
-            .lds-hourglass:after {
-                content: " ";
-                display: block;
-                border-radius: 50%;
-                width: 0;
-                height: 0;
-                margin: 8px;
-                box-sizing: border-box;
-                border: 32px solid black;
-                border-color: gray transparent grey transparent;
-                animation: lds-hourglass 1.2s infinite;
-            }
+        .lds-hourglass:after {
+            content: " ";
+            display: block;
+            border-radius: 50%;
+            width: 0;
+            height: 0;
+            margin: 8px;
+            box-sizing: border-box;
+            border: 32px solid black;
+            border-color: gray transparent grey transparent;
+            animation: lds-hourglass 1.2s infinite;
+        }
 
         @keyframes lds-hourglass {
             0% {
@@ -314,6 +323,7 @@
                 transform: rotate(1800deg);
             }
         }
+
         /* upload function */
         .custum-file-upload {
             height: 200px;
@@ -329,56 +339,66 @@
             background-color: rgba(255, 255, 255, 1);
             padding: 1.5rem;
             border-radius: 10px;
-            box-shadow: 0px 48px 35px -48px rgba(0,0,0,0.1);
+            box-shadow: 0px 48px 35px -48px rgba(0, 0, 0, 0.1);
         }
 
-            .custum-file-upload .icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .custum-file-upload .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-                .custum-file-upload .icon svg {
-                    height: 80px;
-                    fill: rgba(75, 85, 99, 1);
-                }
+        .custum-file-upload .icon svg {
+            height: 80px;
+            fill: rgba(75, 85, 99, 1);
+        }
 
-            .custum-file-upload .text {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .custum-file-upload .text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-                .custum-file-upload .text span {
-                    font-weight: 400;
-                    color: rgba(75, 85, 99, 1);
-                }
+        .custum-file-upload .text span {
+            font-weight: 400;
+            color: rgba(75, 85, 99, 1);
+        }
 
-            .custum-file-upload input {
-                display: none;
-            }
+        .custum-file-upload input {
+            display: none;
+        }
+
         /* upload function*/
 
         /* The Modal (background) */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
+            display: none;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1;
+            /* Sit on top */
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            width: 100%;
+            /* Full width */
+            height: 100%;
+            /* Full height */
+            overflow: auto;
+            /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.4);
+            /* Black w/ opacity */
         }
 
         /* Modal Content/Box */
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto; /* 15% from the top and centered */
+            margin: 15% auto;
+            /* 15% from the top and centered */
             padding: 20px;
             border: 1px solid #888;
-            width: 30%; /* Could be more or less, depending on screen size */
+            width: 30%;
+            /* Could be more or less, depending on screen size */
         }
 
         /* Close Button */
@@ -389,12 +409,12 @@
             font-weight: bold;
         }
 
-            .close:hover,
-            .close:focus {
-                color: black;
-                text-decoration: none;
-                cursor: pointer;
-            }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
 
         #imageSpace {
@@ -420,22 +440,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white; /* Text color set to white */
+            color: white;
+            /* Text color set to white */
             padding: 10px 20px;
+            text-shadow: 5px 5px 5px 5px #000000;
         }
 
-            #des-imageSpace div {
-                color: white;
-                font-weight: bold;
-                font-size: 23px; /* This increases the font size */
-            }
+        #des-imageSpace div {
+            color: white;
+            font-weight: bold;
+            font-size: 23px;
+            /* This increases the font size */
+        }
 
         .header-background {
             background-image: url('Melbourne_At_Night_from_Southbank_Bridge.jpg');
-            background-size: cover;
+            background-size: auto;
             background-position: center;
             background-repeat: no-repeat;
-            padding: 50px 0;
             margin-top: 0;
             padding-top: 0;
         }
@@ -443,7 +465,8 @@
 
         .center {
             display: grid;
-            place-items: center; /* 垂直和水平居中 */
+            place-items: center;
+            /* 垂直和水平居中 */
             height: 100px;
         }
 
@@ -457,12 +480,15 @@
 
         .upload-button {
             display: inline-block;
-            width: auto; /* Adjust the width as needed */
-            height: auto; /* Adjust the height as needed */
+            width: auto;
+            /* Adjust the width as needed */
+            height: auto;
+            /* Adjust the height as needed */
             border: 1px solid black;
             padding: 5px;
             align-items: center;
-            margin-left: 1550px;
+            margin-left: auto;
+            margin-right: auto;
             border-radius: 8px;
             cursor: pointer;
             background-color: white;
@@ -490,28 +516,28 @@
             cursor: pointer;
         }
 
-            .slider::before {
-                content: '';
-                display: block;
-                width: 100%;
-                height: 100%;
-                background-color: #fff;
-                transform: translateX(-30px);
-                border-radius: 20px;
-                transition: .3s;
-                box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
-            }
+        .slider::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            transform: translateX(-30px);
+            border-radius: 20px;
+            transition: .3s;
+            box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
+        }
 
-        .checkbox:checked ~ .slider::before {
+        .checkbox:checked~.slider::before {
             transform: translateX(30px);
             box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
         }
 
-        .checkbox:checked ~ .slider {
+        .checkbox:checked~.slider {
             background-color: #2196F3;
         }
 
-        .checkbox:active ~ .slider::before {
+        .checkbox:active~.slider::before {
             transform: translate(0);
         }
 
@@ -519,19 +545,21 @@
             display: flex;
             align-items: center;
             position: absolute;
-            right: 120px; /* 10px away from the right */
+            right: 120px;
+            /* 10px away from the right */
         }
 
         /* Forecasts/Historical Parts Switch */
 
         .labelText {
-            margin: 0 10px; /* 调整左右边距 */
-            vertical-align: middle; /* 垂直居中与滑块 */
+            margin: 0 10px;
+            /* 调整左右边距 */
+            vertical-align: middle;
+            /* 垂直居中与滑块 */
         }
 
         /* Forecasts/Historical Parts Switch */
         /* Forecasts/Historical Parts Switch */
-
     </style>
 </head>
 
@@ -539,59 +567,26 @@
 
     <div class="header-background">
         <div class="top">
-            <h1 class="text-white"> Electricity Demand Forecasting System </h1>
-        </div>
-        <br />
-
-        <div class="button-container">
-            <button class="btn">
-                <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#0092E4" height="40" width="40">
-                    <path d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z"></path>
-                </svg>
-            </button>
-
-            <!-- Trigger/Open The Modal -->
-            <div id="btnOpenModal" class="upload-button">Upload</div>
-
-            <!-- The Modal -->
-            <div id="myModal" class="modal">
-
-                <!-- Modal content -->
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-
-                    <p>Please choose your data</p>
-                    <label class="custum-file-upload" for="file">
-                        <div class="icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="" viewBox="0 0 24 24"><g stroke-width="0" id="SVGRepo_bgCarrier"></g><g stroke-linejoin="round" stroke-linecap="round" id="SVGRepo_tracerCarrier"></g><g id="SVGRepo_iconCarrier"> <path fill="" d="M10 1C9.73478 1 9.48043 1.10536 9.29289 1.29289L3.29289 7.29289C3.10536 7.48043 3 7.73478 3 8V20C3 21.6569 4.34315 23 6 23H7C7.55228 23 8 22.5523 8 22C8 21.4477 7.55228 21 7 21H6C5.44772 21 5 20.5523 5 20V9H10C10.5523 9 11 8.55228 11 8V3H18C18.5523 3 19 3.44772 19 4V9C19 9.55228 19.4477 10 20 10C20.5523 10 21 9.55228 21 9V4C21 2.34315 19.6569 1 18 1H10ZM9 7H6.41421L9 4.41421V7ZM14 15.5C14 14.1193 15.1193 13 16.5 13C17.8807 13 19 14.1193 19 15.5V16V17H20C21.1046 17 22 17.8954 22 19C22 20.1046 21.1046 21 20 21H13C11.8954 21 11 20.1046 11 19C11 17.8954 11.8954 17 13 17H14V16V15.5ZM16.5 11C14.142 11 12.2076 12.8136 12.0156 15.122C10.2825 15.5606 9 17.1305 9 19C9 21.2091 10.7909 23 13 23H20C22.2091 23 24 21.2091 24 19C24 17.1305 22.7175 15.5606 20.9844 15.122C20.7924 12.8136 18.858 11 16.5 11Z" clip-rule="evenodd" fill-rule="evenodd"></path> </g></svg>
-                        </div>
-                        <div class="text">
-                            <span>Click to upload data</span>
-                        </div>
-                        <input type="file" id="file">
-                    </label>
-
-                </div>
-
+            <h1 class="text-white" style="float:left; margin-top: 5px;"> Electricity Demand Forecasting System </h1>
+            <div style="float:right; padding-right: 45px;">
+                <a href="https://github.com/jber0020/DS-Project" target="_blank">
+                    <button class="btn">
+                        <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"
+                            fill="#0092E4" height="40" width="40">
+                            <path
+                                d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z">
+                            </path>
+                        </svg>
+                    </button>
+                </a>
             </div>
-
         </div>
+        <br />
 
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
         <br />
         <br />
 
         <div id="backgroundSection">
-
-            <br />
-            <br />
-            <br />
-            <br />
             <div id="des-imageSpace">
                 <div>
                     The main goal of this System is design and develop an electricity-demanding forecasting
@@ -612,26 +607,71 @@
 
     <br />
     <br />
+
+    <div class="button-container">
+
+        <!-- Trigger/Open The Modal -->
+        <div id="btnOpenModal" class="upload-button">Upload</div>
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+
+                <p>Please choose your data</p>
+                <label class="custum-file-upload" for="file">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="" viewBox="0 0 24 24">
+                            <g stroke-width="0" id="SVGRepo_bgCarrier"></g>
+                            <g stroke-linejoin="round" stroke-linecap="round" id="SVGRepo_tracerCarrier"></g>
+                            <g id="SVGRepo_iconCarrier">
+                                <path fill=""
+                                    d="M10 1C9.73478 1 9.48043 1.10536 9.29289 1.29289L3.29289 7.29289C3.10536 7.48043 3 7.73478 3 8V20C3 21.6569 4.34315 23 6 23H7C7.55228 23 8 22.5523 8 22C8 21.4477 7.55228 21 7 21H6C5.44772 21 5 20.5523 5 20V9H10C10.5523 9 11 8.55228 11 8V3H18C18.5523 3 19 3.44772 19 4V9C19 9.55228 19.4477 10 20 10C20.5523 10 21 9.55228 21 9V4C21 2.34315 19.6569 1 18 1H10ZM9 7H6.41421L9 4.41421V7ZM14 15.5C14 14.1193 15.1193 13 16.5 13C17.8807 13 19 14.1193 19 15.5V16V17H20C21.1046 17 22 17.8954 22 19C22 20.1046 21.1046 21 20 21H13C11.8954 21 11 20.1046 11 19C11 17.8954 11.8954 17 13 17H14V16V15.5ZM16.5 11C14.142 11 12.2076 12.8136 12.0156 15.122C10.2825 15.5606 9 17.1305 9 19C9 21.2091 10.7909 23 13 23H20C22.2091 23 24 21.2091 24 19C24 17.1305 22.7175 15.5606 20.9844 15.122C20.7924 12.8136 18.858 11 16.5 11Z"
+                                    clip-rule="evenodd" fill-rule="evenodd"></path>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="text">
+                        <span>Click to upload data</span>
+                    </div>
+                    <input type="file" id="file">
+                </label>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    
     <br />
     <br />
 
-
-
-
-    <label class="switch">
-        <span class="labelText">Forecasts</span>
-        <input type="checkbox" class="checkbox">
-        <div class="slider"></div>
-        <span class="labelText">Historical</span>
-    </label>
 
     <div id="content">
-        <div class="center">Forecasts/Historical Parts</div>
-
+        <div class="center">
+            <h2 style="float:center;">Historical/Forecasts</h2>
+            <label class="switch" style="float:left; margin-bottom: auto;">
+                <span class="labelText">Historical</span>
+                <input type="checkbox" class="checkbox">
+                <div class="slider"></div>
+                <span class="labelText">Forecasts</span>
+            </label>
+        </div>
         <div id="imageSpace">
-            <div>
-                Forecasts Part<br />
-            </div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
+                    </div>
+                </div>
+            </span>
         </div>
 
 
@@ -641,7 +681,9 @@
         <br />
 
         <div id="content">
-            <div class="center">Database Part</div>
+            <div class="center">
+                <h2>Database</h2>
+            </div>
             <div id="imageSpace">
                 <span>
                     <div class="pyramid-loader">
@@ -662,12 +704,21 @@
         <br />
         <br />
 
-        <div class="center">Data insight Parts</div>
+        <div class="center">
+            <h2>Insights</h2>
+        </div>
         <div id="imageSpace">
-            <div>
-                data insight Part
-                <br />
-            </div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
+                    </div>
+                </div>
+            </span>
         </div>
 
 
@@ -706,4 +757,5 @@
         }
     </script>
 </body>
+
 </html>
