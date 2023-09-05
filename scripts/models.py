@@ -1,7 +1,3 @@
-"""
-
-"""
-
 # Imports
 import pandas as pd
 import tensorflow as tf
@@ -362,10 +358,13 @@ def run_xgBoost():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
     # Set up the forecaster and fit the model
+    print("Creating Model...")
     forecaster = XGBoostForecaster()
+    print("Training Model...")
     forecaster.fit(X_train, y_train)
 
     # Make predictions
+    print("Evaluating Model...")
     y_pred = forecaster.predict(X_test)
 
     # Calculate metrics
@@ -375,9 +374,8 @@ def run_xgBoost():
 
     print(f"Mean Squared Error: {mse:.2f}")
     print(f"Mean Absolute Error: {mae:.2f}")
-    print(f"Mean Absolute Error: {mape:.2f}")
+    print(f"Mean Absolute Percentage Error: {mape:.2f}%")
 
 
 if __name__ == "__main__":
-    run_xgBoost()
-    run_ARIMA()
+    pass
