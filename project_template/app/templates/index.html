@@ -14,9 +14,9 @@
             display: grid;
             place-items: center;
             background: #e3edf7;
-            padding: 1.4em;
+            padding: 0.9em;
             border-radius: 10px;
-            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15), -6px -6px 10px -1px rgba(255,255,255,0.7);
+            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15), -1px -1px 10px -1px rgba(255,255,255,0.7);
             border: 1px solid rgba(0,0,0,0);
             cursor: pointer;
             transition: transform 0.5s;
@@ -124,13 +124,16 @@
         }
 
         .top {
-            height: 70px;
-            background: linear-gradient(to right, #1e3c72, #2a5298);
+            /* background: linear-gradient(to right, #1e3c72, #2a5298); */
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            padding: 20px;
+            padding: 20px 120px;
             width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .left-box {
@@ -160,7 +163,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-left: 85px; /* 使用了pLeft类的左边距 */
+            /* 	position: absolute;
+            top: 100px; */
+            margin-top: 80px;
+            margin-left: 150px; /* 使用了pLeft类的左边距 */
             max-width: calc(100% - 170px); /* 减去左边距和一些可能的右边距 */
         }
 
@@ -170,7 +176,6 @@
             border: 1px solid black;
             padding: 5px;
             align-items: center;
-            margin-left: 1550px;
             border-radius: 8px;
         }
 
@@ -398,19 +403,30 @@
 
 
         #imageSpace {
+            width: calc(100% - 240px);
+            margin: 0 auto;
             flex: 3;
-            border: 1px solid black;
+            /* border: 1px solid black; */
             height: 500px;
-            margin-right: 50px;
-            margin-left: 60px;
+            /* margin-right: 50px;
+            margin-left: 60px; */
             display: flex;
             align-items: center;
             justify-content: center;
             color: black;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            /* background-color: rgba(255, 255, 255, 0.1); */
+            /* border-radius: 8px; */
             background-color: white;
+            box-shadow: 0px 2px 10px 5px rgba(0,0,0,0.15), -1px -1px 10px -1px rgba(255,255,255,0.7);
         }
+
+        .des-opacity {
+            opacity: 1 !important;
+        }
+
+            .des-opacity .des-content {
+                top: 60px;
+            }
 
         #des-imageSpace {
             flex: 3;
@@ -422,6 +438,9 @@
             justify-content: center;
             color: white; /* Text color set to white */
             padding: 10px 20px;
+            transition: opacity 1.5s;
+            opacity: 0;
+            position: relative;
         }
 
             #des-imageSpace div {
@@ -445,27 +464,30 @@
             display: grid;
             place-items: center; /* 垂直和水平居中 */
             height: 100px;
+            font-size: 30px;
+            font-weight: 600;
         }
 
 
 
         body {
-            background-color: #f5f5f5;
+            background-color: #e6e6e6;
             margin: 0;
             padding: 0;
         }
 
         .upload-button {
-            display: inline-block;
+            display: inline-flex;
             width: auto; /* Adjust the width as needed */
             height: auto; /* Adjust the height as needed */
-            border: 1px solid black;
-            padding: 5px;
+            border: 1px solid #fff;
+            padding: 7px 15px;
             align-items: center;
-            margin-left: 1550px;
             border-radius: 8px;
             cursor: pointer;
-            background-color: white;
+            color: #fff;
+            align-items: center;
+            /* background-color: white; */
         }
 
 
@@ -532,27 +554,64 @@
         /* Forecasts/Historical Parts Switch */
         /* Forecasts/Historical Parts Switch */
 
+        .topFixed {
+            background-color: transparent !important;
+        }
+
+            .topFixed span {
+                color: #fff !important;
+            }
+
+        .topMove {
+            z-index: 999;
+            position: fixed;
+            top: 0;
+            background-color: #00114fc7 !important;
+        }
+
+            .topMove span {
+                color: #fff !important;
+            }
+
+            .topMove .upload-button {
+                border-color: #fff !important;
+            }
+
+        #backgroundSection {
+            padding: 150px 0 100px;
+        }
+
+        .des-content {
+            position: absolute;
+            width: 100%;
+            top: 80px;
+            transition: 1s;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="header-background">
+    <div class="header-background" style="margin-bottom: 20px;">
         <div class="top">
-            <h1 class="text-white"> Electricity Demand Forecasting System </h1>
+            <span class="text-white" style="font-size: 38px;font-weight: 500;"> Electricity Demand Forecasting System </span>
+
+            <!-- Trigger/Open The Modal -->
+            <div id="btnOpenModal" class="upload-button">
+                <img class="uploadIcon" src="upload.png" style="width: 18px;margin-right: 5px;">
+                <span>Upload</span>
+            </div>
         </div>
         <br />
 
         <div class="button-container">
-            <button class="btn">
-                <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#0092E4" height="40" width="40">
-                    <path d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z"></path>
-                </svg>
-            </button>
-
-            <!-- Trigger/Open The Modal -->
-            <div id="btnOpenModal" class="upload-button">Upload</div>
-
+            <a href="https://github.com/jber0020/DS-Project" target="_blank">
+                <button class="btn">
+                    <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#0092E4" height="40" width="40">
+                        <path d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z"></path>
+                    </svg>
+                </button>
+            </a>
             <!-- The Modal -->
             <div id="myModal" class="modal">
 
@@ -576,61 +635,41 @@
             </div>
 
         </div>
-
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-
         <div id="backgroundSection">
-
-            <br />
-            <br />
-            <br />
-            <br />
             <div id="des-imageSpace">
-                <div>
+                <div class="des-content">
                     The main goal of this System is design and develop an electricity-demanding forecasting
                     application that enables users to make informed decisions and create data driven strategies to
                     reduce operating costs by refining resource planning and optimisation.
                 </div>
             </div>
-
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
         </div>
     </div>
 
+    <div id="content" style="background-color: #fff;padding-top: 30px;">
+        <div class="center" style="display: flex;align-items: center;justify-content: center;">
+            <span>Forecasts/Historical</span>
+            <label class="switch" style="margin: 0;font-size: 18px;font-weight: 400;">
+                <span class="labelText">Forecasts</span>
+                <input type="checkbox" class="checkbox">
+                <div class="slider"></div>
+                <span class="labelText">Historical</span>
+            </label>
+        </div>
 
-    <br />
-    <br />
-    <br />
-    <br />
-
-
-
-
-    <label class="switch">
-        <span class="labelText">Forecasts</span>
-        <input type="checkbox" class="checkbox">
-        <div class="slider"></div>
-        <span class="labelText">Historical</span>
-    </label>
-
-    <div id="content">
-        <div class="center">Forecasts/Historical Parts</div>
-
-        <div id="imageSpace">
+        <div id="imageSpace" style="border: 15px solid #f8f8f8;">
             <div>
-                Forecasts Part<br />
+                <span>
+                    <div class="pyramid-loader">
+                        <div class="wrapper">
+                            <span class="side side1"></span>
+                            <span class="side side2"></span>
+                            <span class="side side3"></span>
+                            <span class="side side4"></span>
+                            <span class="shadow"></span>
+                        </div>
+                    </div>
+                </span>
             </div>
         </div>
 
@@ -641,8 +680,8 @@
         <br />
 
         <div id="content">
-            <div class="center">Database Part</div>
-            <div id="imageSpace">
+            <div class="center">Insight</div>
+            <div id="imageSpace" style="border: 15px solid #f8f8f8;">
                 <span>
                     <div class="pyramid-loader">
                         <div class="wrapper">
@@ -662,10 +701,20 @@
         <br />
         <br />
 
-        <div class="center">Data insight Parts</div>
-        <div id="imageSpace">
+        <div class="center">DataBase</div>
+        <div id="imageSpace" style="border: 15px solid #f8f8f8;">
             <div>
-                data insight Part
+                <span>
+                    <div class="pyramid-loader">
+                        <div class="wrapper">
+                            <span class="side side1"></span>
+                            <span class="side side2"></span>
+                            <span class="side side3"></span>
+                            <span class="side side4"></span>
+                            <span class="shadow"></span>
+                        </div>
+                    </div>
+                </span>
                 <br />
             </div>
         </div>
@@ -679,6 +728,7 @@
     </div>
 
     <script>
+
         // Get the modal
         var modal = document.getElementById("myModal");
 
@@ -698,6 +748,23 @@
             modal.style.display = "none";
         }
 
+        window.addEventListener("load", function () {
+            let des = document.querySelector('#des-imageSpace');
+            des.className = 'des-opacity';
+        });
+
+        window.addEventListener('scroll', function () {
+            let top = document.querySelector('.top');
+            let scrollTop = document.documentElement.scrollTop
+            let uploadIcon = document.querySelector('.uploadIcon');
+            if (scrollTop == 0) {
+                top.className = 'top topFixed';
+                uploadIcon.setAttribute('src', 'upload.png')
+            } else {
+                top.className = 'top topMove';
+                // uploadIcon.setAttribute('src','upload_black.png')
+            }
+        });
         // When the user clicks anywhere outside of the modal, close it
         window.onclick = function (event) {
             if (event.target == modal) {
