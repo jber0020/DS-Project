@@ -1,0 +1,13 @@
+,0
+pressure_kpa,0.9999999999999999
+cloud_cover_pct,1.0
+humidity_pct,1.0
+temperature_c,1.0
+wind_direction_deg,1.0
+wind_speed_kmh,1.0
+lag_1day,1.0
+lag_2day,0.9999999999999999
+lag_1week,0.9999999999999999
+day,1.0
+year,1.0
+weekday,0.9999999999999999

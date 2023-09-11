@@ -36,8 +36,9 @@ def feature_selection(data:pd.DataFrame) -> pd.Series:
     mir_scores.index = x.columns
     return mir_scores.sort_values(ascending=False)
 
-def preprocessing(data:pd.DataFrame) -> pd.DataFrame:
-    data['time'] = pd.to_datetime(data['time'])
+def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
+    data = df.copy()
+    data['time'] = pd.to_datetime(data['time'], format='%d/%m/%Y %H:%M')
 
     # Add Lag Values
     data['lag_1day'] = data['time'].apply(lambda x: data.loc[data['time'] == (x - pd.DateOffset(days=1)), 
@@ -47,8 +48,8 @@ def preprocessing(data:pd.DataFrame) -> pd.DataFrame:
     data['lag_1week'] = data['time'].apply(lambda x: data.loc[data['time'] == (x - pd.DateOffset(days=7)), 
                                                             'load_kw'].values[0] if (x - pd.DateOffset(days=7)) in data['time'].values else None)
     
-    # Remove Rows with no lags
-    data.dropna(inplace=True)
+    # Remove rows with no lag
+    data.dropna(subset=['lag_1week'], inplace=True)
 
     # Clean time values
     data['day'] = data['time'].dt.day
@@ -60,7 +61,14 @@ def preprocessing(data:pd.DataFrame) -> pd.DataFrame:
 
     # Normalisation
     normalised_columns = ~data.columns.isin(['hour', 'month',"load_kw"])
-    data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
+    if initial:
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
+        data.loc[:,normalised_columns].mean().to_csv(get_root("scripts/means.csv"))
+        data.loc[:,normalised_columns].std().to_csv(get_root('scripts/stds.csv'))
+    else:
+        means = pd.read_csv(get_root('scripts/means.csv'))
+        stds = pd.read_csv(get_root('scripts/stds.csv'))
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-means) / stds
 
     # Sine/Cosine Encoding
     data['hour_sin'] = np.sin(data['hour'] * 2 * np.pi / 24)
@@ -101,11 +109,12 @@ class xgBoostForecaster:
         # Return prediction
         return self.model.predict(x)
 
-    def save_model(self) -> None:
-        pass
+    def save_model(self, name, filepath):
+        self.model.save_model(get_root('{}/{}.model'.format(filepath, name)))
 
-    def load_model(self) -> None:
-        pass
+    def load_model(self, name, filepath):
+        self.build_model()
+        self.model.load_model(get_root('{}/{}.model'.format(filepath, name)))
 
 class NeuralNetForecaster:
     def __init__(self) -> None:
@@ -136,7 +145,7 @@ class NeuralNetForecaster:
         # Train model
         history = self.model.fit(X_train, y_train, validation_data=(X_val, y_val), 
                                  epochs=self.epochs, batch_size=self.batch_size,
-                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)])
+                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)])
         return history
 
     def test_model(self, X_test, y_test):
@@ -152,11 +161,11 @@ class NeuralNetForecaster:
 
     def save_model(self, name, filepath):
         # Save model
-        self.model.save('{}/{}.keras'.format(filepath, name))
+        self.model.save(get_root('{}/{}.keras'.format(filepath, name)))
 
     def load_model(self, name, filepath):
         # Load model
-        self.model = tf.keras.models.load_model('{}/{}.keras'.format(filepath, name))
+        self.model = tf.keras.models.load_model(get_root('{}/{}.keras'.format(filepath, name)))
 
 class RandomForestForecaster:
     def __init__(self):
@@ -181,11 +190,12 @@ class RandomForestForecaster:
     def predict(self, x):
         return self.model.predict(x)
 
-    def save_model(self):
-        pass
+    def save_model(self, name, filepath):
+        self.model.save_model(get_root('{}/{}.model'.format(filepath, name)))
 
-    def load_model(self):
-        pass
+    def load_model(self, name, filepath):
+        self.build_model()
+        self.model.load_model(get_root('{}/{}.model'.format(filepath, name)))
 
 
 def naive(y, i:int):
@@ -194,3 +204,62 @@ def naive(y, i:int):
     mae = mean_absolute_error(y[i:], pred[i:])
     mape = mean_absolute_percentage_error(y[i:], pred[i:])*100
     return [mse, mae, mape]
+
+
+def get_forecasts(data):
+    """
+    Pass this in the data from the previous week plus the two days to forecast, 
+    and it will return the forecasts for the next two days.
+
+    For example, if we wish to forecast Tuesday and Wednesday, pass in data
+    from last week's Tuesday to this week's Monday, plus the forecasted weather
+    variables for Tuesday and Wednesday. 
+    """
+    # Preprocess Data
+    processed_data = preprocessing(data).tail(48)
+
+    # Break data into two days
+    day1 = processed_data[:24].drop('load_kw', axis='columns')
+    day2 = processed_data[24:].drop('load_kw', axis='columns')
+    day2.drop('lag_1day', axis='columns', inplace=True)
+    # Forecast first day
+    Xgb1 = xgBoostForecaster()
+    Xgb1.load_model('xgb1', 'scripts/models')
+    day_one_forecasts = pd.DataFrame(Xgb1.predict(day1))
+
+    # Forecast second day
+    Xgb2 = xgBoostForecaster()
+    Xgb2.load_model('xgb2', 'scripts/models')
+    day_two_forecasts = pd.DataFrame(Xgb2.predict(day2))
+
+    # Join forecasts
+    joint = pd.concat([day_one_forecasts, day_two_forecasts], ignore_index=True)
+    joint.columns = ['forecasts']
+    joint['time'] = data.tail(48)['time'].reset_index(drop=True)
+
+    # Return results
+    return joint
+
+
+if __name__=='__main__':
+    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    # Grab Last Week + 2 Days to forecast
+    data = data.tail(14*24)
+    forecasts = get_forecasts(data)
+
+    # Create a line plot
+    plt.figure(figsize=(10, 6))  # Optional: Set the figure size
+    plt.plot(forecasts['time'], forecasts['forecasts'], marker='o', linestyle='-')
+
+    # Optional: Add labels and a title
+    plt.xlabel('Time')
+    plt.ylabel('Forecasts')
+    plt.title('Forecasts Over Time')
+
+    # Optional: Rotate x-axis labels for better visibility if needed
+    plt.xticks(rotation=45)
+
+    # Display the plot
+    plt.grid(True)
+    plt.tight_layout()  # Optional: Ensures labels fit within the figure
+    plt.show()

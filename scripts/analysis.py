@@ -52,11 +52,11 @@ def mutual_info_reg(data):
     print("Mutual Information Regression")
     print(mir_scores.sort_values(ascending=False))
 
-if __name__=="__main__":
+def model_performance():
     # Read Data
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
     
-    data = preprocessing(data)
+    data = preprocessing(data, initial=True)
     
     X = data.drop('load_kw', axis='columns', inplace=False)
     y = data['load_kw']
@@ -180,6 +180,7 @@ if __name__=="__main__":
         xgb_results[1],
         xgb_results[2]
     ))
+    XGBoost.save_model('xgb1', 'scripts/models')
 
     # Run XGBoost Model 2
     XGBoost = xgBoostForecaster()
@@ -191,6 +192,7 @@ if __name__=="__main__":
         xgb_results[1],
         xgb_results[2]
     ))
+    XGBoost.save_model('xgb2', 'scripts/models')
 
     # Run Random Forest Model 1
     Rf = RandomForestForecaster()
@@ -215,3 +217,6 @@ if __name__=="__main__":
     ))
 
     results.close()
+
+if __name__=="__main__":
+    model_performance()
