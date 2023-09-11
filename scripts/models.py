@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from sklearn.feature_selection import mutual_info_regression
 from xgboost import XGBRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 def feature_selection(data:pd.DataFrame) -> pd.Series:
     # Seperate Data into Dependent and Independent Variables
@@ -82,12 +83,19 @@ class xgBoostForecaster:
         # Build model
         self.model = XGBRegressor(n_estimators=self.n_estimators, max_depth=self.max_depth, learning_rate=self.learning_rate)
 
-    def train_model(self, X_train, y_train, X_val, y_val):
+    def train_model(self, X_train, y_train):
         # Train model
-        self.model.fit(X_train, y_train, eval_set=(X_val, y_val), verbose=True, eval_metric='mse')
+        self.model.fit(X_train, y_train, verbose=True)
 
     def test_model(self, X_test, y_test):
-        pass
+        y_pred = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        print('MSE: {}'.format(mse))
+        print('MAE: {}'.format(mae))
+        print('MAPE: {}'.format(mape*100))
+        return [mse, mae, mape*100]
 
     def predict(self, x):
         # Return prediction
@@ -118,7 +126,7 @@ class NeuralNetForecaster:
             for i in layers[1:]:
                 self.model.add(tf.keras.layers.Dense(i, activation='relu'))
         self.model.add(tf.keras.layers.Dense(1, activation='relu'))
-        self.model.compile(loss='mean_squared_error', metrics=self.metrics)
+        self.model.compile(loss='mean_squared_error', optimizer='adam', metrics=self.metrics)
 
     def train_model(self, X_train, y_train, X_val, y_val):
         # Check model has been built
@@ -126,7 +134,9 @@ class NeuralNetForecaster:
             print('Must build model first! Call NeuralNetForecaster.build_model()')
             return
         # Train model
-        history = self.model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=self.epochs, batch_size=self.batch_size)
+        history = self.model.fit(X_train, y_train, validation_data=(X_val, y_val), 
+                                 epochs=self.epochs, batch_size=self.batch_size,
+                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)])
         return history
 
     def test_model(self, X_test, y_test):
@@ -152,3 +162,35 @@ class RandomForestForecaster:
     def __init__(self):
         pass
 
+    def build_model(self):
+        self.model = RandomForestRegressor(n_estimators=100, random_state=52)
+
+    def train_model(self, X_train, y_train):
+        self.model.fit(X_train, y_train)
+
+    def test_model(self, X_test, y_test):
+        y_pred = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        print('MSE: {}'.format(mse))
+        print('MAE: {}'.format(mae))
+        print('MAPE: {}'.format(mape*100))
+        return [mse, mae, mape*100]
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def save_model(self):
+        pass
+
+    def load_model(self):
+        pass
+
+
+def naive(y, i:int):
+    pred = y.shift(i)
+    mse = mean_squared_error(y[i:], pred[i:])
+    mae = mean_absolute_error(y[i:], pred[i:])
+    mape = mean_absolute_percentage_error(y[i:], pred[i:])*100
+    return [mse, mae, mape]

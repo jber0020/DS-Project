@@ -1,4 +1,15 @@
 """
+ANALYSIS FILE
+
+FIT3164
+Project 4 - Electricity Demand Forecasting
+Team 4
+- Joshua Berg
+- Ryan Hendler
+- Yuechuan Li
+- Yangyi Li
+
+This file contains code that analysises the data, and the models' performance.
 """
 
 # Imports
@@ -66,88 +77,42 @@ if __name__=="__main__":
     X2_test = X1_test.drop('lag_1day', axis="columns", inplace=False)
     
     results = open(get_root('scripts/results/comparison_results.txt'), 'w')
+    results.write("model,mse,mae,mape\n")
     # Run Benchmarks
     # Naive
     pred = y.shift(1)
-    print("===1h Naive Model===")
-    print("MSE:", mean_squared_error(y[1:], pred[1:]))
-    print("MAE:", mean_absolute_error(y[1:], pred[1:]))
-    print("MAPE:", mean_absolute_percentage_error(y[1:], pred[1:])*100)
-    results.write("1 Hour Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[1:], pred[1:]),
-        mean_absolute_error(y[1:], pred[1:]),
-        mean_absolute_percentage_error(y[1:], pred[1:]*100)
-        ))
+    naive_res = naive(y, 1)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("1HourNaive,{},{},{}\n".format(mse, mae, mape))
 
     # Seasonal Naive - Day
-    pred = y.shift(24)
-    print("===24h Naive Model===")
-    print("MSE:", mean_squared_error(y[24:], pred[24:]))
-    print("MAE:", mean_absolute_error(y[24:], pred[24:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24:], pred[24:])*100)
-    results.write("24 Hour Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[24:], pred[24:]),
-        mean_absolute_error(y[24:], pred[24:]),
-        mean_absolute_percentage_error(y[24:], pred[24:]*100)
-        ))
+    naive_res = naive(y, 24)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("24HourNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - 2 Day
-    pred = y.shift(48)
-    print("===48h Naive Model===")
-    print("MSE:", mean_squared_error(y[48:], pred[48:]))
-    print("MAE:", mean_absolute_error(y[48:], pred[48:]))
-    print("MAPE:", mean_absolute_percentage_error(y[48:], pred[48:])*100)
-    results.write("48 Hour Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[48:], pred[48:]),
-        mean_absolute_error(y[48:], pred[48:]),
-        mean_absolute_percentage_error(y[48:], pred[48:]*100)
-        ))
+    naive_res = naive(y, 48)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("48HourNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - Week
-    pred = y.shift(24*7)
-    print("===1week Naive Model===")
-    print("MSE:", mean_squared_error(y[24*7:], pred[24*7:]))
-    print("MAE:", mean_absolute_error(y[24*7:], pred[24*7:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24*7:], pred[24*7:])*100)
-    results.write("1 Week Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[24*7:], pred[24*7:]),
-        mean_absolute_error(y[24*7:], pred[24*7:]),
-        mean_absolute_percentage_error(y[24*7:], pred[24*7:]*100)
-        ))
+    naive_res = naive(y, 25*7)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("1WeekNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - Month
-    pred = y.shift(24*30)
-    print("===1month Naive Model===")
-    print("MSE:", mean_squared_error(y[24*30:], pred[24*30:]))
-    print("MAE:", mean_absolute_error(y[24*30:], pred[24*30:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24*30:], pred[24*30:])*100)
-    results.write("1 Month Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[24*30:], pred[24*30:]),
-        mean_absolute_error(y[24*30:], pred[24*30:]),
-        mean_absolute_percentage_error(y[24*30:], pred[24*30:]*100)
-        ))
+    naive_res = naive(y, 1)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("1HourNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - Year
-    pred = y.shift(24*365)
-    print("===1year Naive Model===")
-    print("MSE:", mean_squared_error(y[24*365:], pred[24*365:]))
-    print("MAE:", mean_absolute_error(y[24*365:], pred[24*365:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24*365:], pred[24*365:])*100)
-    results.write("1 Year Naive\n")
-    results.write("MSE:{}, MAE: {}, MAPE: {}\n".format(
-        mean_squared_error(y[24*365:], pred[24*365:]),
-        mean_absolute_error(y[24*365:], pred[24*365:]),
-        mean_absolute_percentage_error(y[24*365:], pred[24*365:]*100)
-        ))
+    naive_res = naive(y, 24*365)
+    mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
+    results.write("1YearNaive,{},{},{}\n".format(mse, mae, mape))
 
     # # Random Walk with Drift
     # np.random.seed(52)
@@ -194,9 +159,7 @@ if __name__=="__main__":
                          learning_rate=0.1)
     NetModel.train_model(X1_train, y_train, X1_val, y_val)
     net_results = NetModel.test_model(X1_test, y_test)
-    results.write("Neural Network Day 1\n")
-    results.write("{}".format(net_results))
-    results.write("\n")
+    results.write("NN1,{},{},{}\n".format(net_results[1], net_results[2], net_results[3]))
 
     # Run ANN Model 2
     NetModel = NeuralNetForecaster()
@@ -205,17 +168,14 @@ if __name__=="__main__":
                          learning_rate=0.1)
     NetModel.train_model(X2_train, y_train, X2_val, y_val)
     net_results = NetModel.test_model(X2_test, y_test)
-    results.write("Neural Network Day 2\n")
-    results.write("{}".format(net_results))
-    results.write("\n")
+    results.write("NN2,{},{},{}\n".format(net_results[1], net_results[2], net_results[3]))
 
     # Run XGBoost Model 1
     XGBoost = xgBoostForecaster()
     XGBoost.build_model()
-    XGBoost.train_model(X1_train, y_train, X1_val, y_val)
+    XGBoost.train_model(X1_train, y_train)
     xgb_results = XGBoost.test_model(X1_test, y_test)
-    results.write("XGBoost Day 1\n")
-    results.write("MSE: {}, MAE: {}, MAPE: {}".format(
+    results.write("XGB1,{},{},{}\n".format(
         xgb_results[0],
         xgb_results[1],
         xgb_results[2]
@@ -224,16 +184,34 @@ if __name__=="__main__":
     # Run XGBoost Model 2
     XGBoost = xgBoostForecaster()
     XGBoost.build_model()
-    XGBoost.train_model(X2_train, y_train, X2_val, y_val)
+    XGBoost.train_model(X2_train, y_train)
     xgb_results = XGBoost.test_model(X2_test, y_test)
-    results.write("XGBoost Day 1\n")
-    results.write("MSE: {}, MAE: {}, MAPE: {}".format(
+    results.write("XGB2,{},{},{}\n".format(
         xgb_results[0],
         xgb_results[1],
         xgb_results[2]
     ))
 
-    # Run Random Forest
+    # Run Random Forest Model 1
+    Rf = RandomForestForecaster()
+    Rf.build_model()
+    Rf.train_model(X1_train, y_train)
+    Rf_results = Rf.test_model(X1_test, y_test)
+    results.write("RF1,{},{},{}\n".format(
+        Rf_results[0],
+        Rf_results[1],
+        Rf_results[2]
+    ))
 
+    # Run Random Forest Model 2
+    Rf = RandomForestForecaster()
+    Rf.build_model()
+    Rf.train_model(X2_train, y_train)
+    Rf_results = Rf.test_model(X2_test, y_test)
+    results.write("RF2,{},{},{}\n".format(
+        Rf_results[0],
+        Rf_results[1],
+        Rf_results[2]
+    ))
 
     results.close()
