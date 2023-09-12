@@ -2,6 +2,9 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <meta charset="utf-8" />
     <title>Electricity Demand Forecasting</title>
     <style>
@@ -657,17 +660,11 @@
             </label>
         </div>
 
-        <div id="imageSpace" style="border: 15px solid #f8f8f8;">
+        <div id="imageSpace" style="border: 15px solid #f8f8f8; position: relative;">
             <div>
                 <span>
-                    <div class="pyramid-loader">
-                        <div class="wrapper">
-                            <span class="side side1"></span>
-                            <span class="side side2"></span>
-                            <span class="side side3"></span>
-                            <span class="side side4"></span>
-                            <span class="shadow"></span>
-                        </div>
+                    <div style="width: 100%; height: 100%;">
+                        <canvas id="forecastChart" style="width: 100%; height: 100%;"></canvas>
                     </div>
                 </span>
             </div>
@@ -771,6 +768,140 @@
                 modal.style.display = "none";
             }
         }
+        // Line chart
+        function resizeCanvas() {
+            var canvas = document.getElementById('forecastChart');
+            var container = document.getElementById('imageSpace');
+
+            // 设置canvas的实际绘图大小
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // 初始化时调用一次
+        resizeCanvas();
+
+        // 当窗口大小改变时，也要调整canvas的大小
+        window.addEventListener('resize', resizeCanvas);
+
+        var ctx = document.getElementById('forecastChart').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [
+                    '2023/9/12 4:49',
+                    '2023/9/12 5:49',
+                    '2023/9/12 6:49',
+                    '2023/9/12 7:49',
+                    '2023/9/12 8:49',
+                    '2023/9/12 9:49',
+                    '2023/9/12 10:49',
+                    '2023/9/12 11:49',
+                    '2023/9/12 12:49',
+                    '2023/9/12 13:49',
+                    '2023/9/12 14:49',
+                    '2023/9/12 15:49',
+                    '2023/9/12 16:49',
+                    '2023/9/12 17:49',
+                    '2023/9/12 18:49',
+                    '2023/9/12 19:49',
+                    '2023/9/12 20:49',
+                    '2023/9/12 21:49',
+                    '2023/9/12 22:49',
+                    '2023/9/12 23:49',
+                    '2023/9/13 0:49',
+                    '2023/9/13 1:49',
+                    '2023/9/13 2:49',
+                    '2023/9/13 3:49',
+                    '2023/9/13 4:49',
+                    '2023/9/13 5:49',
+                    '2023/9/13 6:49',
+                    '2023/9/13 7:49',
+                    '2023/9/13 8:49',
+                    '2023/9/13 9:49',
+                    '2023/9/13 10:49',
+                    '2023/9/13 11:49',
+                    '2023/9/13 12:49',
+                    '2023/9/13 13:49',
+                    '2023/9/13 14:49',
+                    '2023/9/13 15:49',
+                    '2023/9/13 16:49',
+                    '2023/9/13 17:49',
+                    '2023/9/13 18:49',
+                    '2023/9/13 19:49',
+                    '2023/9/13 20:49',
+                    '2023/9/13 21:49',
+                    '2023/9/13 22:49',
+                    '2023/9/13 23:49',
+                    '2023/9/14 0:49',
+                    '2023/9/14 1:49',
+                    '2023/9/14 2:49',
+                    '2023/9/14 3:49'/* ... continue for each timestamp */
+                ],
+                datasets: [{
+                    label: 'Forecast',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // 更改为浅蓝色背景
+                    borderColor: 'rgba(75, 192, 192, 1)',      // 更改为浅蓝色边框
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)', // 点的颜色
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                    data: [
+                        1000, 1011, 1024, 1039, 1056, 1075, 1096, 1119, 1094, 1121,
+                        1100, 1131, 1164, 1149, 1186, 1175, 1166, 1209, 1204, 1201,
+                        1200, 1251, 1254, 1259, 1266, 1275, 1286, 1299, 1314, 1331,
+                        1300, 1321, 1344, 1369, 1346, 1375, 1406, 1389, 1424, 1411,
+                        1400, 1441, 1434, 1479, 1476, 1475, 1476, 1479
+                    ],
+                    fill: true, // 设置为true给图表加背景色
+                    lineTension: 0.2, // 这使线条看起来更加平滑
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                title: {
+                    display: true,
+                    text: 'Forecast Data Over Time',
+                    fontSize: 20
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            parser: 'YYYY/MM/DD H:mm'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Time',
+                            fontSize: 16
+                        },
+                        ticks: {
+                            major: {
+                                fontStyle: 'bold',
+                                fontColor: '#FF0000'
+                            }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Forecast Value',
+                            fontSize: 16
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
