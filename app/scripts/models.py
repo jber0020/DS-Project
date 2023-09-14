@@ -1,141 +1,269 @@
 """
+MODELLING FILE
 
+FIT3164
+Project 4 - Electricity Demand Forecasting
+Team 4
+- Joshua Berg
+- Ryan Hendler
+- Yuechuan Li
+- Yangyi Li
+
+This file contains the code for the models, feature selection, and data preprocessing.
 """
 
 # Imports
+from utils import *
 import pandas as pd
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from utils import *
-from wrangling import *
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
-from statsmodels.tsa.arima.model import ARIMA as sARIMA
+from sklearn.feature_selection import mutual_info_regression
+from xgboost import XGBRegressor
+from sklearn.ensemble import RandomForestRegressor
 
+def feature_selection(data:pd.DataFrame) -> pd.Series:
+    # Seperate Data into Dependent and Independent Variables
+    x = data.drop('load_kw', axis=1)
+    y = data['load_kw']
+    # Normalise Data
+    x = (x-x.mean())/x.std()
+    y = (y-y.mean())/y.std()
+    # Calculate Mutual Information Regression
+    mir_scores = mutual_info_regression(x, y)
+    mir_scores = pd.Series(mir_scores)
+    mir_scores.index = x.columns
+    return mir_scores.sort_values(ascending=False)
 
-class xgBoost:
-    """
-    xgBoost Model
-    """
+def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
+    data = df.copy()
+    data['time'] = pd.to_datetime(data['time'], format='%d/%m/%Y %H:%M')
+
+    # Add Lag Values
+    data['lag_1day'] = data['time'].apply(lambda x: data.loc[data['time'] == (x - pd.DateOffset(days=1)), 
+                                                            'load_kw'].values[0] if (x - pd.DateOffset(days=1)) in data['time'].values else None)
+    data['lag_2day'] = data['time'].apply(lambda x: data.loc[data['time'] == (x - pd.DateOffset(days=2)), 
+                                                            'load_kw'].values[0] if (x - pd.DateOffset(days=2)) in data['time'].values else None)
+    data['lag_1week'] = data['time'].apply(lambda x: data.loc[data['time'] == (x - pd.DateOffset(days=7)), 
+                                                            'load_kw'].values[0] if (x - pd.DateOffset(days=7)) in data['time'].values else None)
+    
+    # Remove rows with no lag
+    data.dropna(subset=['lag_1week'], inplace=True)
+
+    # Clean time values
+    data['day'] = data['time'].dt.day
+    data['month'] = data['time'].dt.month
+    data['hour'] = data['time'].dt.hour
+    data['year'] = data['time'].dt.year
+    data['weekday'] = data['time'].dt.weekday
+    data.drop("time", axis="columns", inplace=True)
+    # Normalisation
+    normalised_columns = ~data.columns.isin(['hour', 'month',"load_kw"])
+    if initial:
+        data.loc[:,normalised_columns].mean().to_csv(get_root("scripts/means.csv"))
+        data.loc[:,normalised_columns].std().to_csv(get_root('scripts/stds.csv'))
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
+    else:
+        means = pd.read_csv(get_root('scripts/means.csv'), index_col=0)
+        means = means.astype(float)
+        stds = pd.read_csv(get_root('scripts/stds.csv'), index_col=0)
+        stds = stds.astype(float)
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-means.iloc[:,0]) / stds.iloc[:,0]
+    # Sine/Cosine Encoding
+    data['hour_sin'] = np.sin(data['hour'] * 2 * np.pi / 24)
+    data['hour_cos'] = np.cos(data['hour'] * 2 * np.pi / 24)
+    data['month_sin'] = np.sin(data['month'] * 2 * np.pi / 12)
+    data['month_cos'] = np.cos(data['month'] * 2 * np.pi / 12)
+    data.drop(['hour', 'month'], axis='columns', inplace=True)
+        
+    return data
+
+class xgBoostForecaster:
     def __init__(self) -> None:
         pass
 
+    def build_model(self, n_estimators=100, max_depth=3, learning_rate=0.1) -> None:
+        # Set parameters
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.learning_rate = learning_rate
+        # Build model
+        self.model = XGBRegressor(n_estimators=self.n_estimators, max_depth=self.max_depth, learning_rate=self.learning_rate)
 
-class ARIMA:
-    """
-    ARIMA Model
-    """
-    def __init__(self, data, p, d, q) -> None:
-        self.model = sARIMA(data, order=(p, d, q))
-        self.fit = self.model.fit()
-        print(self.fit.summary())
-        pass
+    def train_model(self, X_train, y_train):
+        # Train model
+        self.model.fit(X_train, y_train, verbose=True)
 
-class LSTM:
-    """
-    LSTM RNN Model
-    """
-    def __init__(self):
-        pass
+    def test_model(self, X_test, y_test):
+        y_pred = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        print('MSE: {}'.format(mse))
+        print('MAE: {}'.format(mae))
+        print('MAPE: {}'.format(mape*100))
+        return [mse, mae, mape*100]
 
-class ANN:
-    """
-    ANN Model
-    """
+    def predict(self, x):
+        # Return prediction
+        return self.model.predict(x)
 
-    def __init__(self, input_size, layers, batch_size=32, learning_rate=0.001, epochs=100, metrics=['mse']) -> None:
+    def save_model(self, name, filepath):
+        self.model.save_model(get_root('{}/{}.model'.format(filepath, name)))
+
+    def load_model(self, name, filepath):
+        self.build_model()
+        self.model.load_model(get_root('{}/{}.model'.format(filepath, name)))
+
+class NeuralNetForecaster:
+    def __init__(self) -> None:
+        self.model = None
+    
+    def build_model(self, input_size, layers, batch_size=32, learning_rate=0.001, epochs=100, metrics=['mse', 'mae', 'mape']):
+        # Set Parameters
         self.batch_size = batch_size
         self.epochs = epochs
-        self.metrics= metrics
+        self.metrics = metrics
+        self.learning_rate = learning_rate
+        self.input_size = input_size
+
+        # Build Model
         self.model = tf.keras.Sequential()
-        self.model.add(tf.keras.layers.Dense(layers[0], input_dim=input_size, activation='relu'))
+        self.model.add(tf.keras.layers.Dense(layers[0], input_dim=input_size))
         if len(layers) > 1:
             for i in layers[1:]:
                 self.model.add(tf.keras.layers.Dense(i, activation='relu'))
-        self.model.add(tf.keras.layers.Dense(1, activation='linear'))
-        self.model.compile(loss='mean_squared_error', optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), metrics=self.metrics)
+        self.model.add(tf.keras.layers.Dense(1, activation='relu'))
+        self.model.compile(loss='mean_squared_error', optimizer='adam', metrics=self.metrics)
 
-    def train_model(self, X_train, y_train):
-        history = self.model.fit(X_train, y_train, epochs=self.epochs, batch_size=self.batch_size)
-        return self.model, history
+    def train_model(self, X_train, y_train, X_val, y_val):
+        # Check model has been built
+        if self.model is None:
+            print('Must build model first! Call NeuralNetForecaster.build_model()')
+            return
+        # Train model
+        history = self.model.fit(X_train, y_train, validation_data=(X_val, y_val), 
+                                 epochs=self.epochs, batch_size=self.batch_size,
+                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', 
+                                                                             patience=10)],
+                                                                             verbose=0)
+        return history
 
-    def test_model(self, X_val, y_val):
-        results = self.model.evaluate(X_val, y_val, verbose=0)
+    def test_model(self, X_test, y_test):
+        # Test model
+        results = self.model.evaluate(X_test, y_test, verbose=0)
         print('Validation Loss:', results[0])
         for i in range(len(self.metrics)):
             print(self.metrics[i] + ": " + str(results[i+1]))
         return results
+    
+    def predict(self, x):
+        return self.model.predict(x)
 
-    def save_model(self, filepath):
-        self.model.save(filepath)
+    def save_model(self, name, filepath):
+        # Save model
+        self.model.save(get_root('{}/{}.keras'.format(filepath, name)))
 
-    def load_model(self):
+    def load_model(self, name, filepath):
+        # Load model
+        self.model = tf.keras.models.load_model(get_root('{}/{}.keras'.format(filepath, name)))
+
+class RandomForestForecaster:
+    def __init__(self):
         pass
 
-    def predict(self):
-        pass
+    def build_model(self):
+        self.model = RandomForestRegressor(n_estimators=100, random_state=52)
+
+    def train_model(self, X_train, y_train):
+        self.model.fit(X_train, y_train)
+
+    def test_model(self, X_test, y_test):
+        y_pred = self.model.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mape = mean_absolute_percentage_error(y_test, y_pred)
+        print('MSE: {}'.format(mse))
+        print('MAE: {}'.format(mae))
+        print('MAPE: {}'.format(mape*100))
+        return [mse, mae, mape*100]
+
+    def predict(self, x):
+        return self.model.predict(x)
+
+    def save_model(self, name, filepath):
+        self.model.save_model(get_root('{}/{}.model'.format(filepath, name)))
+
+    def load_model(self, name, filepath):
+        self.build_model()
+        self.model.load_model(get_root('{}/{}.model'.format(filepath, name)))
 
 
-def run_benchmarks():
+def naive(y, i:int):
+    pred = y.shift(i)
+    mse = mean_squared_error(y[i:], pred[i:])
+    mae = mean_absolute_error(y[i:], pred[i:])
+    mape = mean_absolute_percentage_error(y[i:], pred[i:])*100
+    return [mse, mae, mape]
+
+
+def get_forecasts(data):
+    """
+    Pass this in the data from the previous week plus the two days to forecast, 
+    and it will return the forecasts for the next two days.
+
+    For example, if we wish to forecast Tuesday and Wednesday, pass in data
+    from last week's Tuesday to this week's Monday, plus the forecasted weather
+    variables for Tuesday and Wednesday. 
+    """
+    # Preprocess Data
+    processed_data = preprocessing(data).tail(48)
+
+    # Break data into two days
+    day1 = processed_data[:24].drop('load_kw', axis='columns')
+    day2 = processed_data[24:].drop('load_kw', axis='columns')
+    day2.drop('lag_1day', axis='columns', inplace=True)
+    # Forecast first day
+    Xgb1 = xgBoostForecaster()
+    Xgb1.load_model('xgb1', 'scripts/models')
+    day_one_forecasts = pd.DataFrame(Xgb1.predict(day1))
+
+    # Forecast second day
+    Xgb2 = xgBoostForecaster()
+    Xgb2.load_model('xgb2', 'scripts/models')
+    day_two_forecasts = pd.DataFrame(Xgb2.predict(day2))
+
+    # Join forecasts
+    joint = pd.concat([day_one_forecasts, day_two_forecasts], ignore_index=True)
+    joint.columns = ['forecasts']
+    joint['time'] = data.tail(48)['time'].reset_index(drop=True)
+
+    # Return results
+    return joint
+
+
+if __name__=='__main__':
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    # Grab Last Week + 2 Days to forecast
+    data = data.tail(14*24)
+    forecasts = get_forecasts(data)
 
-    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
+    # Create a line plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(forecasts['time'], forecasts['forecasts'], marker='o', linestyle='-', color='blue')
+    plt.plot(data.tail(48)['time'], data.tail(48)['load_kw'], marker='o', linestyle='-', color='orange')
 
-    # Naive
-    pred = y.shift(1)
-    print("===Naive Model===")
-    print("MSE:", mean_squared_error(y[1:], pred[1:]))
-    print("MAE:", mean_absolute_error(y[1:], pred[1:]))
-    print("MAPE:", mean_absolute_percentage_error(y[1:], pred[1:])*100)
+    # Add labels and a title
+    plt.xlabel('Time')
+    plt.ylabel('Forecasts')
+    plt.title('Forecasts Over Time')
 
-    # Seasonal Naive - Day
-    pred = y.shift(24)
-    print("===24h Naive Model===")
-    print("MSE:", mean_squared_error(y[24:], pred[24:]))
-    print("MAE:", mean_absolute_error(y[24:], pred[24:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24:], pred[24:])*100)
+    plt.xticks(rotation=45)
 
-    # Seasonal Naive - Week
-    pred = y.shift(24*7)
-    print("===1week Naive Model===")
-    print("MSE:", mean_squared_error(y[24*7:], pred[24*7:]))
-    print("MAE:", mean_absolute_error(y[24*7:], pred[24*7:]))
-    print("MAPE:", mean_absolute_percentage_error(y[24*7:], pred[24*7:])*100)
+    plt.legend(['Forecasts', "Actuals"])
 
-def run_ANN():
-    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
-
-    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
-
-    X = (X-X.mean()) / X.std()
-
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
-
-    learning_rates = [0.1, 0.01, 0.001, 0.0001]
-    layers = [
-        [64, 32, 16],
-        [64, 32],
-        [32, 16, 8],
-        [32, 16],
-        [128, 64, 32]
-    ]
-
-    for lr in learning_rates:
-        for l in layers:
-            Model = ANN(input_size = len(X.columns), layers = l, metrics=['mse', 'mae', 'mape'], learning_rate=lr)
-            model, history = Model.train_model(X_train, y_train)
-            val_loss, mse, mae, mape = Model.test_model(X_val, y_val)
-            results = open("results.txt", 'a')
-            results.write("{},{},{},{},{},{}\n".format(lr, l, val_loss, mse, mae, mape))
-            results.close()
-
-def run_ARIMA():
-    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
-
-    X, y = data.drop("Load (kW)", axis="columns"), data["Load (kW)"]
-
-    model = ARIMA(data=y, p=24, d=1, q=0)
-
-
-
-if __name__ == "__main__":
-    run_ARIMA()
+    # Display the plot
+    plt.grid(True)
+    plt.tight_layout() 
+    plt.show()
