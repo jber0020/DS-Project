@@ -40,8 +40,8 @@ def summary(data):
         plt.close()
 
 def mutual_info_reg(data):
-    x = data.drop('Load (kW)', axis=1)
-    y = data['Load (kW)']
+    x = data.drop('load_kw', axis=1)
+    y = data['load_kw']
 
     x = (x-x.mean())/x.std()
     y = (y-y.mean())/y.std()
@@ -80,7 +80,6 @@ def model_performance():
     results.write("model,mse,mae,mape\n")
     # Run Benchmarks
     # Naive
-    pred = y.shift(1)
     naive_res = naive(y, 1)
     mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
     results.write("1HourNaive,{},{},{}\n".format(mse, mae, mape))
@@ -98,15 +97,15 @@ def model_performance():
 
 
     # Seasonal Naive - Week
-    naive_res = naive(y, 25*7)
+    naive_res = naive(y, 24*7)
     mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
     results.write("1WeekNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - Month
-    naive_res = naive(y, 1)
+    naive_res = naive(y, 24*30)
     mse, mae, mape = naive_res[0], naive_res[1], naive_res[2]
-    results.write("1HourNaive,{},{},{}\n".format(mse, mae, mape))
+    results.write("1MonthNaive,{},{},{}\n".format(mse, mae, mape))
 
 
     # Seasonal Naive - Year

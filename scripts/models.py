@@ -58,18 +58,18 @@ def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
     data['year'] = data['time'].dt.year
     data['weekday'] = data['time'].dt.weekday
     data.drop("time", axis="columns", inplace=True)
-
     # Normalisation
     normalised_columns = ~data.columns.isin(['hour', 'month',"load_kw"])
     if initial:
-        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
         data.loc[:,normalised_columns].mean().to_csv(get_root("scripts/means.csv"))
         data.loc[:,normalised_columns].std().to_csv(get_root('scripts/stds.csv'))
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
     else:
-        means = pd.read_csv(get_root('scripts/means.csv'))
-        stds = pd.read_csv(get_root('scripts/stds.csv'))
-        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-means) / stds
-
+        means = pd.read_csv(get_root('scripts/means.csv'), index_col=0)
+        means = means.astype(float)
+        stds = pd.read_csv(get_root('scripts/stds.csv'), index_col=0)
+        stds = stds.astype(float)
+        data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-means.iloc[:,0]) / stds.iloc[:,0]
     # Sine/Cosine Encoding
     data['hour_sin'] = np.sin(data['hour'] * 2 * np.pi / 24)
     data['hour_cos'] = np.cos(data['hour'] * 2 * np.pi / 24)
@@ -145,7 +145,9 @@ class NeuralNetForecaster:
         # Train model
         history = self.model.fit(X_train, y_train, validation_data=(X_val, y_val), 
                                  epochs=self.epochs, batch_size=self.batch_size,
-                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)])
+                                 callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', 
+                                                                             patience=10)],
+                                                                             verbose=0)
         return history
 
     def test_model(self, X_test, y_test):
@@ -248,18 +250,20 @@ if __name__=='__main__':
     forecasts = get_forecasts(data)
 
     # Create a line plot
-    plt.figure(figsize=(10, 6))  # Optional: Set the figure size
-    plt.plot(forecasts['time'], forecasts['forecasts'], marker='o', linestyle='-')
+    plt.figure(figsize=(10, 6))
+    plt.plot(forecasts['time'], forecasts['forecasts'], marker='o', linestyle='-', color='blue')
+    plt.plot(data.tail(48)['time'], data.tail(48)['load_kw'], marker='o', linestyle='-', color='orange')
 
-    # Optional: Add labels and a title
+    # Add labels and a title
     plt.xlabel('Time')
     plt.ylabel('Forecasts')
     plt.title('Forecasts Over Time')
 
-    # Optional: Rotate x-axis labels for better visibility if needed
     plt.xticks(rotation=45)
+
+    plt.legend(['Forecasts', "Actuals"])
 
     # Display the plot
     plt.grid(True)
-    plt.tight_layout()  # Optional: Ensures labels fit within the figure
+    plt.tight_layout() 
     plt.show()
