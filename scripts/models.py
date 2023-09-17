@@ -37,7 +37,9 @@ def feature_selection(data:pd.DataFrame) -> pd.Series:
     return mir_scores.sort_values(ascending=False)
 
 def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
-    data = df.copy()
+    data = df[['time', 'load_kw', 'pressure_kpa', 'cloud_cover_pct', 'temperature_c',
+                     'wind_direction_deg', 'wind_speed_kmh']]
+    data = data.copy()
     data['time'] = pd.to_datetime(data['time'], format='%d/%m/%Y %H:%M')
 
     # Add Lag Values
@@ -242,6 +244,36 @@ def get_forecasts(data):
     # Return results
     return joint
 
+
+def retraining_required(actuals, forecasts) -> bool:
+    """
+    Input last 3 weeks of actuals, 2 weeks of forecasts.
+    This function will compare the performance of the 1
+    week naive model against our model, over the previous
+    2 weeks.
+    """
+    y = actuals['load_kw']
+    naive_mse = naive(y, 24*7)[0]
+    model_mse = mean_squared_error(actuals['load_kw'].tail(24*7), forecasts['forecasts'])
+    if model_mse < naive_mse:
+        return False
+    else:
+        return True
+
+def retrain_model(data) -> None:
+    pass
+
+def get_insights(forecasts, actuals):
+    """
+
+    Possible insights:
+    - Forecasted Peak Demand
+    - Forecasted Average Demand
+    - Forecasted Minimum
+    - Model Performance (MAPE)
+
+    """
+    pass
 
 if __name__=='__main__':
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
