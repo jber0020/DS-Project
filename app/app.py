@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request
+import psycopg2
 from werkzeug.utils import secure_filename
 import os
 import pandas as pd
@@ -41,6 +42,51 @@ def extract_date_from_filename(filename: str) -> str:
     formatted_date = date_obj.strftime('%Y-%m-%d')
     return formatted_date
 
+def get_data_insights(forecasts, historical_df):
+    import pandas as pd
+
+def get_data_insights(forecasts, historical_df):
+    # Ensure the dataframes are sorted by time
+    forecasts = forecasts.sort_values(by="time")
+    historical_df = historical_df.sort_values(by="time")
+
+    # Get stats for the forecast data
+    first_24h = forecasts.iloc[:24]
+    second_24h = forecasts.iloc[24:]
+
+    insights = {
+        "first_24h_min": first_24h["load_kw"].min(),
+        "first_24h_max": first_24h["load_kw"].max(),
+        "first_24h_avg": first_24h["load_kw"].mean(),
+        
+        "second_24h_min": second_24h["load_kw"].min(),
+        "second_24h_max": second_24h["load_kw"].max(),
+        "second_24h_avg": second_24h["load_kw"].mean()
+    }
+
+    # Define the period for "yesterday", "last week", and "last month"
+    end_time_today = forecasts["time"].iloc[0]
+    start_time_yesterday = end_time_today - pd.Timedelta(days=1)
+    start_time_last_week = end_time_today - pd.Timedelta(weeks=1)
+    start_time_last_month = end_time_today - pd.Timedelta(weeks=4)  # Assuming 4 weeks for simplicity
+
+    # Calculate the average demand for the defined periods
+    yesterday_demand = historical_df[(historical_df["time"] >= start_time_yesterday) & (historical_df["time"] < end_time_today)]
+    last_week_demand = historical_df[(historical_df["time"] >= start_time_last_week) & (historical_df["time"] < end_time_today)]
+    last_month_demand = historical_df[(historical_df["time"] >= start_time_last_month) & (historical_df["time"] < end_time_today)]
+    
+    today_avg_demand = forecasts["load_kw"].mean()
+    insights["diff_yesterday"] = today_avg_demand - yesterday_demand["load_kw"].mean()
+    insights["diff_last_week"] = today_avg_demand - last_week_demand["load_kw"].mean()
+    insights["diff_last_month"] = today_avg_demand - last_month_demand["load_kw"].mean()
+
+    insights["percent_diff_yesterday"] = (insights["diff_yesterday"] / yesterday_demand["load_kw"].mean()) * 100
+    insights["percent_diff_last_week"] = (insights["diff_last_week"] / last_week_demand["load_kw"].mean()) * 100
+    insights["percent_diff_last_month"] = (insights["diff_last_month"] / last_month_demand["load_kw"].mean()) * 100
+
+    return insights
+
+
 
 @app.route('/')
 def index():
@@ -52,7 +98,7 @@ def data_upload_endpoint():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"})
     
-    file = request.files['uploaded_file']
+    file = request.files['file']
 
     if file.filename == '':
         return jsonify({"error": "No selected file"})
@@ -94,11 +140,19 @@ def data_upload_endpoint():
 
                 # Actuals file - Upload the latest actuals to db
                 db_manager = PostgreSQLUploader()
-                db_manager.upload_raw_actuals_csv(actuals_path)
+                try:
+                    db_manager.upload_raw_actuals_csv(actuals_path)
+                except psycopg2.errors.UniqueViolation:
+                    print("A row with a duplicate primary key was found and skipped.")
+                except Exception as e:
+                    print(f"An unexpected error occurred: {e}")
 
-                # Forecasts - Upload forecasts to db
-                db_manager.upload_raw_forecasts_csv(forecasts_path)
-
+                try:
+                    db_manager.upload_raw_forecasts_csv(forecasts_path)
+                except psycopg2.errors.UniqueViolation:
+                    print("A row with a duplicate primary key was found and skipped.")
+                except Exception as e:
+                    print(f"An unexpected error occurred: {e}")
                 # If retrain:
                     # run josh retraining script
 
@@ -109,12 +163,14 @@ def data_upload_endpoint():
 
                 combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
                 two_day_forecasts = get_forecasts(combined_df)
-
+                two_day_forecasts.to_csv("fopre.csv")
                 # Take the df and upload those forecasts to db
                 db_manager.upload_model_forecasts(two_day_forecasts)
 
+                # data_insights = get_data_insights(two_day_forecasts)
+
                 #return forecasts
-                return jsonify(two_day_forecasts)
+                # return jsonify(two_day_forecasts)
 
         # For direct file uploads (not ZIP)
         # else:
@@ -127,7 +183,7 @@ def data_upload_endpoint():
         #     # Return success message after processing single file
         #     return jsonify({"message": "File uploaded and loaded into DataFrame successfully!"})
 
-    return jsonify({"error": "File type not allowed"})
+    # return jsonify({"error": "File type not allowed"})
 
 def test(extracted_date):
     db_manager = PostgreSQLUploader()
@@ -144,5 +200,5 @@ def test(extracted_date):
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    print(test("2021-02-08"))
+    app.run(debug=True)
+    # print(test("2021-02-08"))

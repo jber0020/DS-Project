@@ -177,12 +177,12 @@ class PostgreSQLUploader:
             raise ValueError("Expected dataframe with 48 rows")
 
         # Split the dataframe into two: first 24 rows and next 24 rows
-        df_forecast_1 = df.iloc[:24]
-        df_forecast_2 = df.iloc[24:]
+        df_forecast_1 = df.iloc[24:]
+        df_forecast_2 = df.iloc[:24]
 
         # Update forecast_1 for the first 24 rows
         for _, row in df_forecast_1.iterrows():
-            time, forecast = row['time'], row['forecast']
+            time, forecast = row['time'], row['forecasts']
             sql = """
             UPDATE elec_forecasts
             SET forecast_1 = %s
@@ -192,7 +192,7 @@ class PostgreSQLUploader:
 
         # Update forecast_2 for the next 24 rows
         for _, row in df_forecast_2.iterrows():
-            time, forecast = row['time'], row['forecast']
+            time, forecast = row['time'], row['forecasts']
             sql = """
             UPDATE elec_forecasts
             SET forecast_2 = %s
