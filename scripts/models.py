@@ -22,6 +22,7 @@ from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error,
 from sklearn.feature_selection import mutual_info_regression
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
+import math
 
 def feature_selection(data:pd.DataFrame) -> pd.Series:
     # Seperate Data into Dependent and Independent Variables
@@ -261,7 +262,37 @@ def retraining_required(actuals, forecasts) -> bool:
         return True
 
 def retrain_model(data) -> None:
-    pass
+    data = preprocessing(data, initial=True)
+    
+    X = data.drop('load_kw', axis='columns', inplace=False)
+    y = data['load_kw']
+
+    # Calculate Number of Days
+    n = len(X) // 24
+    # Approx 70% train, 20% validation, 10% test
+    X1_train = X[:math.floor(n*0.7)*24]
+    X1_val = X[math.floor(n*0.7)*24:math.floor(n*0.9)*24]
+    X1_test = X[math.floor(n*0.9)*24:]
+
+    y_train = y[:math.floor(n*0.7)*24]
+    y_val = y[math.floor(n*0.7)*24:math.floor(n*0.9)*24]
+    y_test = y[math.floor(n*0.9)*24:]
+
+    X2_train = X1_train.drop('lag_1day', axis="columns", inplace=False)
+    X2_val = X1_val.drop('lag_1day', axis="columns", inplace=False)
+    X2_test = X1_test.drop('lag_1day', axis="columns", inplace=False)
+    
+    # Run XGBoost Model 1
+    XGBoost = xgBoostForecaster()
+    XGBoost.build_model()
+    XGBoost.train_model(X1_train, y_train)
+    XGBoost.save_model('xgb1', 'scripts/models')
+
+    # Run XGBoost Model 2
+    XGBoost = xgBoostForecaster()
+    XGBoost.build_model()
+    XGBoost.train_model(X2_train, y_train)
+    XGBoost.save_model('xgb2', 'scripts/models')
 
 def get_insights(forecasts, actuals):
     """
