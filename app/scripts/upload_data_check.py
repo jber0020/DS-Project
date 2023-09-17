@@ -48,7 +48,7 @@ def validate_actuals(df: pd.DataFrame, upload_date: str):
     return "Actuals data validation passed!"
 
 
-def validate_actuals(df: pd.DataFrame, upload_date: str):
+def validate_forecasts(df: pd.DataFrame, upload_date: str):
     expected_columns = [
         "Time", "Pressure_kpa", "Cloud Cover (%)", 
         "Temperature (C)", "Wind Direction (deg)", "Wind Speed (kmh)"
@@ -59,7 +59,7 @@ def validate_actuals(df: pd.DataFrame, upload_date: str):
     start_date = pd.to_datetime(upload_date) + pd.Timedelta(hours=32)
     end_date = pd.to_datetime(upload_date) + pd.Timedelta(hours=55)
     assert df["Time"].min() == start_date and df["Time"].max() == end_date, f"Invalid date range in data. Expected: {start_date} to {end_date}"
-    assert len(df) == 48, f"Data should have 24 hours worth of data. Found: {len(df)} hours"
+    assert len(df) == 24, f"Data should have 24 hours worth of data. Found: {len(df)} hours"
 
     # 2. Column Name Validation
     assert set(df.columns) == set(expected_columns), f"Column mismatch. Found: {df.columns}, Expected: {expected_columns}"
@@ -69,11 +69,9 @@ def validate_actuals(df: pd.DataFrame, upload_date: str):
         "Temperature (C)": (-50, 50),
         "Pressure_kpa": (900, 1100),
         "Cloud Cover (%)": (0, 100),
-        "Humidity (%)": (0, 100),
         "Wind Direction (deg)": (0, 360),
-        "Wind Speed (kmh)": (0, 200),
-        "Load (kW)": (0, float('inf'))
-    }
+        "Wind Speed (kmh)": (0, 200)
+        }
     for col, (min_val, max_val) in valid_ranges.items():
         assert df[col].between(min_val, max_val).all(), f"Invalid values in {col}"
 

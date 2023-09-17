@@ -86,8 +86,6 @@ def get_data_insights(forecasts, historical_df):
 
     return insights
 
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -135,8 +133,8 @@ def data_upload_endpoint():
                 forecasts = pd.read_csv(forecasts_path)
 
                 #print("yoooo", extracted_date)
-                #print(validate_actuals(actuals, extracted_date))
-                #print(validate_forecasts(forecasts, extracted_date))
+                print(validate_actuals(actuals, extracted_date))
+                print(validate_forecasts(forecasts, extracted_date))
 
                 # Actuals file - Upload the latest actuals to db
                 db_manager = PostgreSQLUploader()
