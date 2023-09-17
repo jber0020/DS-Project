@@ -164,7 +164,48 @@ class PostgreSQLUploader:
             self.conn.commit()
         self._disconnect()
 
-    def fetch_data_from_actuals(reference_date):
+    def upload_model_forecasts(self, df):
+        """
+        Upload forecasts from the dataframe into the elec_forecasts table.
+        
+        df: a DataFrame with columns time and forecast
+        """
+        self._connect()
+
+        # Ensure the dataframe has exactly 48 rows
+        if len(df) != 48:
+            raise ValueError("Expected dataframe with 48 rows")
+
+        # Split the dataframe into two: first 24 rows and next 24 rows
+        df_forecast_1 = df.iloc[:24]
+        df_forecast_2 = df.iloc[24:]
+
+        # Update forecast_1 for the first 24 rows
+        for _, row in df_forecast_1.iterrows():
+            time, forecast = row['time'], row['forecast']
+            sql = """
+            UPDATE elec_forecasts
+            SET forecast_1 = %s
+            WHERE time = %s
+            """
+            self.cur.execute(sql, (forecast, time))
+
+        # Update forecast_2 for the next 24 rows
+        for _, row in df_forecast_2.iterrows():
+            time, forecast = row['time'], row['forecast']
+            sql = """
+            UPDATE elec_forecasts
+            SET forecast_2 = %s
+            WHERE time = %s
+            """
+            self.cur.execute(sql, (forecast, time))
+            
+        # Commit the changes
+        self.conn.commit()
+        self._disconnect()
+
+
+def fetch_actuals_from_db(reference_date):
         melbourne_tz = pytz.timezone('Australia/Melbourne')
 
         # Dates for 8AM one week ago and 7AM of the reference_date
@@ -204,12 +245,12 @@ class PostgreSQLUploader:
 
         return df
 
-    def fetch_forecasts_from_actuals(reference_date):
+def fetch_forecasts_from_db(reference_date):
         melbourne_tz = pytz.timezone('Australia/Melbourne')
 
         # Dates for 8AM one week ago and 7AM of the reference_date
-        start_datetime = (pd.to_datetime(reference_date) + pd.Timedelta(days=7)).replace(hour=8, minute=0, second=0).tz_localize(melbourne_tz)
-        end_datetime = pd.to_datetime(reference_date).replace(hour=7, minute=0, second=0).tz_localize(melbourne_tz)
+        start_datetime = pd.to_datetime(reference_date).replace(hour=8, minute=0, second=0).tz_localize(melbourne_tz)
+        end_datetime = (pd.to_datetime(reference_date) + pd.Timedelta(days=2)).replace(hour=7, minute=0, second=0).tz_localize(melbourne_tz)
 
         start_date = start_datetime.strftime('%Y-%m-%d %H:%M:%S')
         end_date = end_datetime.strftime('%Y-%m-%d %H:%M:%S')
@@ -228,8 +269,8 @@ class PostgreSQLUploader:
         
         # Use pandas to fetch data and convert it to a DataFrame
         query = f"""
-            SELECT time, load_kw, pressure_kpa, cloud_cover_pct, temperature_c, wind_direction_deg, wind_speed_kmh 
-            FROM elec_actuals 
+            SELECT time, pressure_kpa, cloud_cover_pct, temperature_c, wind_direction_deg, wind_speed_kmh 
+            FROM elec_forecasts
             WHERE time >= '{start_date}' 
             AND time <= '{end_date}'
             ORDER BY time ASC
@@ -245,12 +286,12 @@ class PostgreSQLUploader:
         return df
 
 # Test
-# data = fetch_data_from_actuals("2017-03-30")
+# data = fetch_data_from_actuals("2020-03-30")
 # print(data)
 
 uploader = PostgreSQLUploader()
 
-# uploader.upload_raw_actuals_csv('data/elec_p4_dataset/Train/merged_actuals.csv', 'elec_actuals')
-uploader.upload_raw_forecasts_csv("upload_data/Forecasts_Jan 19 8AM.csv")
+#uploader.upload_raw_actuals_csv(f'upload_data/Actuals_Interim.csv', 'elec_actuals')
+# uploader.upload_raw_forecasts_csv(f"upload_data/Forecasts_Feb {i} 8AM.csv")
 
 

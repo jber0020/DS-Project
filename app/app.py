@@ -6,6 +6,7 @@ import zipfile
 from scripts.upload_data_check import validate_actuals, validate_forecasts
 from datetime import datetime, timedelta  # Make sure to import this at the top of your file
 from scripts.models import get_forecasts
+from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetch_forecasts_from_db
 
 
 app = Flask(__name__)
@@ -91,21 +92,29 @@ def data_upload_endpoint():
                 #print(validate_actuals(actuals, extracted_date))
                 #print(validate_forecasts(forecasts, extracted_date))
 
-                # Actuals file - Upload the latest actuals to db 
-                
+                # Actuals file - Upload the latest actuals to db
+                db_manager = PostgreSQLUploader()
+                db_manager.upload_raw_actuals_csv(actuals_path)
+
                 # Forecasts - Upload forecasts to db
+                db_manager.upload_raw_forecasts_csv(forecasts_path)
 
                 # If retrain:
                     # run josh retraining script
 
                 # Fetch last weeks worth of data - To feed into the forecast function we need to go and get the last weeks worth of data (Joshs model expects 1 week lag variables and 2 day lag variables)
-                # Run josh forecast script - this will give us a df which has 48 hours worth of forecasts
+                # Last week + 2 day forecasted variables (load will be null)
+                actuals_df = fetch_actuals_from_db(extracted_date)
+                forecasts_df = fetch_forecasts_from_db(extracted_date)
+
+                combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
+                two_day_forecasts = get_forecasts(combined_df)
 
                 # Take the df and upload those forecasts to db
+                db_manager.upload_model_forecasts(two_day_forecasts)
 
-
-                return forecasts
-                return jsonify({"message": "ZIP file uploaded and files loaded into DataFrames successfully and validated!"})
+                #return forecasts
+                return jsonify(two_day_forecasts)
 
         # For direct file uploads (not ZIP)
         # else:
@@ -120,8 +129,20 @@ def data_upload_endpoint():
 
     return jsonify({"error": "File type not allowed"})
 
+def test(extracted_date):
+    db_manager = PostgreSQLUploader()
+    actuals_df = fetch_actuals_from_db(extracted_date)
+    forecasts_df = fetch_forecasts_from_db(extracted_date)
+    
+    print("hey")
+    combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
+    combined_df.to_csv("tester.csv")
+    two_day_forecasts = get_forecasts(combined_df)
 
+    # Take the df and upload those forecasts to db
+    db_manager.upload_model_forecasts(two_day_forecasts)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    print(test("2021-02-08"))
