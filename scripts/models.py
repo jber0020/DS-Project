@@ -254,12 +254,12 @@ def retraining_required(actuals, forecasts) -> bool:
     2 weeks.
     """
     y = actuals['load_kw']
-    naive_mse = naive(y, 24*7)[0]
-    model_mse = mean_squared_error(actuals['load_kw'].tail(24*7), forecasts['forecasts'])
-    if model_mse < naive_mse:
-        return False
-    else:
+    naive_mse = naive(y, 24*7*2)[0]
+    model_mse = mean_squared_error(y.tail(24*7*2), forecasts['forecasts'])
+    if model_mse > naive_mse:
         return True
+    else:
+        return False
 
 def retrain_model(data) -> None:
     data = preprocessing(data, initial=True)
@@ -330,3 +330,10 @@ if __name__=='__main__':
     plt.grid(True)
     plt.tight_layout() 
     plt.show()
+
+    # Test Retraining
+    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    data = data.tail(24*7*3) # Grab last 3 weeks
+    forecasts = pd.DataFrame()
+    forecasts['forecasts'] = np.zeros(24*7*2)
+    print(retraining_required(data, forecasts))
