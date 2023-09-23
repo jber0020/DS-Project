@@ -44,47 +44,66 @@ def extract_date_from_filename(filename: str) -> str:
     formatted_date = date_obj.strftime('%Y-%m-%d')
     return formatted_date
 
-def get_data_insights(forecasts, historical_df):
+import pandas as pd
+
+def get_data_insights(forecasts, historical_df, current_time):
+    if not isinstance(current_time, pd.Timestamp):
+        current_time = pd.Timestamp(current_time)
+    # Ensure the "time" column is of datetime64[ns] type
+    historical_df["time"] = historical_df["time"].astype('datetime64[ns]')
+    # Remove rows with NaN values in the "time" column
+    historical_df = historical_df.dropna(subset=["time"])
+    
     # Ensure the dataframes are sorted by time
     forecasts = forecasts.sort_values(by="time")
     historical_df = historical_df.sort_values(by="time")
 
-    # Define a helper function to safely extract stats
     def safe_stat(data, stat_func):
         try:
-            return stat_func(data)
+            value = stat_func(data)
+            # If the value is a number, round it to the nearest whole number
+            if isinstance(value, (int, float)):
+                return round(value)
+            else:
+                return value
         except:
             return "NA"
 
-    # Get current time independently from data and set timezone to Melbourne
-    current_time = pd.Timestamp.now(tz='Australia/Melbourne')
+    # Use forecast_2 when available, else default to forecast_1
+    forecasts["forecast"] = forecasts["forecast_2"].combine_first(forecasts["forecast_1"])
 
-    # Define the period for "yesterday", "today", "tomorrow", "last week", and "last month" based on 8AM to 7AM schedule
+    # Define the period for "yesterday", "today", "tomorrow", based on 8AM to 7AM schedule
     start_time_today = pd.Timestamp(current_time.date(), tz=current_time.tz) + pd.Timedelta(hours=8)
+    start_time_today = start_time_today.to_datetime64()  # Ensure datetime64[ns] type
+
     start_time_yesterday = start_time_today - pd.Timedelta(days=1)
     end_time_today = start_time_today + pd.Timedelta(days=1)
-    start_time_last_week = start_time_today - pd.Timedelta(weeks=1)
-    start_time_last_month = start_time_today - pd.Timedelta(weeks=4)
-    start_time_last_year = start_time_today - pd.Timedelta(weeks=52)
 
-    # Extract statistics from yesterday, today, and tomorrow
+    # Extract statistics from yesterday
     yesterday_demand = historical_df[(historical_df["time"] >= start_time_yesterday) & (historical_df["time"] < start_time_today)]
-    today_demand = historical_df[(historical_df["time"] >= start_time_today) & (historical_df["time"] < end_time_today)]
-    tomorrow_demand = forecasts.iloc[:24]  # Assuming the forecasts start from the current "day" and contain data for at least the next 24 hours
+
+    # Extract statistics for today and tomorrow from the forecasts
+    today_demand = forecasts[(forecasts["time"] >= start_time_today) & (forecasts["time"] < end_time_today)]
+    tomorrow_demand = forecasts[(forecasts["time"] >= end_time_today) & (forecasts["time"] < (end_time_today + pd.Timedelta(days=1)))]
 
     insights = {
         "yesterday_max": safe_stat(yesterday_demand["load_kw"], max),
         "yesterday_min": safe_stat(yesterday_demand["load_kw"], min),
         "yesterday_avg": safe_stat(yesterday_demand["load_kw"], pd.Series.mean),
 
-        "today_max": safe_stat(today_demand["load_kw"], max),
-        "today_min": safe_stat(today_demand["load_kw"], min),
-        "today_avg": safe_stat(today_demand["load_kw"], pd.Series.mean),
+        "today_max": safe_stat(today_demand["forecast"], max),
+        "today_min": safe_stat(today_demand["forecast"], min),
+        "today_avg": safe_stat(today_demand["forecast"], pd.Series.mean),
 
-        "tomorrow_max": safe_stat(tomorrow_demand["load_kw"], max),
-        "tomorrow_min": safe_stat(tomorrow_demand["load_kw"], min),
-        "tomorrow_avg": safe_stat(tomorrow_demand["load_kw"], pd.Series.mean)
+        "tomorrow_max": safe_stat(tomorrow_demand["forecast"], max),
+        "tomorrow_min": safe_stat(tomorrow_demand["forecast"], min),
+        "tomorrow_avg": safe_stat(tomorrow_demand["forecast"], pd.Series.mean)
     }
+
+    # Define the period for "last week", "last month", and "last year"
+    start_time_last_week = start_time_today - pd.Timedelta(weeks=1)
+    start_time_last_month = start_time_today - pd.Timedelta(weeks=4)
+    start_time_last_year = start_time_today - pd.Timedelta(weeks=52)
 
     # Calculate the average demand for the defined periods
     last_week_demand = historical_df[(historical_df["time"] >= start_time_last_week) & (historical_df["time"] < start_time_today)]
@@ -96,6 +115,7 @@ def get_data_insights(forecasts, historical_df):
     insights["yearly_avg"] = safe_stat(last_year_demand["load_kw"], pd.Series.mean)
 
     return insights
+
 
 
 
@@ -237,6 +257,7 @@ def data_historical_upload_endpoint():
 @app.route('/api/data-insights', methods=['GET'])
 def get_insights():
     filename = request.args.get('filename')
+    filename = secure_filename(filename)
     print(filename)
     
     if not filename:
@@ -244,18 +265,19 @@ def get_insights():
 
     # Extract date string from the filename
     current_date_str = extract_date_from_filename(filename)
-    
+
     # Convert the date string to a datetime object
     current_date = datetime.strptime(current_date_str, '%Y-%m-%d')
 
     # Calculate two_days_later and year_ago based on current_date
     two_days_later = current_date + timedelta(days=2)
     year_ago = current_date - timedelta(days=367)
-    
+
     forecasts = fetch_forecasts_from_db_for_insights(current_date, two_days_later)
     historical_df = fetch_actuals_from_db_for_insights(year_ago, two_days_later)
-
-    insights = get_data_insights(forecasts, historical_df)
+    print("df", forecasts)
+    print("df_his", historical_df)
+    insights = get_data_insights(forecasts, historical_df, current_date)
 
     # Return the insights as a JSON object
     return jsonify(insights)

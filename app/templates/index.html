@@ -499,14 +499,51 @@
         }
 
 
-        .insight-box {
-            flex: 1;
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin: 10px;
-            min-width: calc(33% - 20px);
-            box-sizing: border-box;
-        }
+    #dataInsightsSpace {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+        grid-gap: 20px; /* Defines the space between grid items */
+        justify-items: center; /* Horizontally aligns items to the center of their grid area */
+        align-items: center; /* Vertically aligns items to the center of their grid area */
+        padding: 20px;
+        border: 15px solid #f8f8f8;
+    }
+
+    .date-range {
+        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
+        vertical-align: middle;
+        color: darkblue;
+    }
+
+    .insight-box {
+        /* Define a fixed width and height for each box, if desired */
+        margin: 5px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .insight-box h2 {
+        color: darkblue;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .insight-box .days span,
+    .insight-box .values span {
+        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
+    }
+
+    .insight-box .days strong,
+    .insight-box .values strong {
+        font-size: 1.5em;  /* "Today" remains the same size as before */
+        font-weight: bold;
+    }
 
 
         /* Forecasts/Historical Parts Switch */
@@ -735,58 +772,59 @@
         <br />
         <br />
 
-        <div class="center">DataBase</div>
-<div id="dataInsightsSpace" style="border: 15px solid #f8f8f8; display: flex; flex-wrap: wrap; justify-content: space-between; padding: 20px;">
-
-    <!-- Yesterday/Today/Tomorrow's Max -->
-    <div class="insight-box">
-        <h3>Yesterday/Today/Tomorrow's Max</h3>
-        <p id="yesterday_max">Loading...</p>
-        <p id="today_max">Loading...</p>
-        <p id="tomorrow_max">Loading...</p>
-    </div>
-
-    <!-- Yesterday/Today/Tomorrow's Min -->
-    <div class="insight-box">
-        <h3>Yesterday/Today/Tomorrow's Min</h3>
-        <p id="yesterday_min">Loading...</p>
-        <p id="today_min">Loading...</p>
-        <p id="tomorrow_min">Loading...</p>
-    </div>
-
-    <!-- Yesterday/Today/Tomorrow Average -->
-    <div class="insight-box">
-        <h3>Yesterday/Today/Tomorrow Average</h3>
-        <p id="yesterday_avg">Loading...</p>
-        <p id="today_avg">Loading...</p>
-        <p id="tomorrow_avg">Loading...</p>
-    </div>
-
-    <!-- Weekly Average -->
-    <div class="insight-box">
-        <h3>Weekly Average</h3>
-        <p id="weekly_avg">Loading...</p>
-    </div>
-
-    <!-- Monthly Average -->
-    <div class="insight-box">
-        <h3>Monthly Average</h3>
-        <p id="monthly_avg">Loading...</p>
-    </div>
-
-    <!-- Yearly Average -->
-    <div class="insight-box">
-        <h3>Yearly Average</h3>
-        <p id="yearly_avg">Loading...</p>
-    </div>
-
-</div>
-
-<button onclick="fetchDataInsights()">Generate Data Insights</button>
-
-
-
-
+        <div class="center">Electricity Demand Insights <span class="date-range">(Yesterday / Today / Tomorrow)</span></div>
+        <div id="dataInsightsSpace">
+            
+            <!-- Max Demand -->
+            <div class="insight-box">
+                <h2>Maximum Demand</h2>
+                <div class="values">
+                    <span id="yesterday_max">Loading..</span> / <strong id="today_max">Loading..</strong> / <span id="tomorrow_max">Loading...</span>
+                </div>
+            </div>
+        
+            <!-- Min Demand -->
+            <div class="insight-box">
+                <h2>Minimum Demand</h2>
+                <div class="values">
+                    <span id="yesterday_min">Loading..</span> / <strong id="today_min">Loading..</strong> / <span id="tomorrow_min">Loading...</span>
+                </div>
+            </div>
+        
+            <!-- Average Demand -->
+            <div class="insight-box">
+                <h2>Average Demand</h2>
+                <div class="values">
+                    <span id="yesterday_avg">Loading..</span> / <strong id="today_avg">Loading..</strong> / <span id="tomorrow_avg">Loading...</span>
+                </div>
+            </div>
+        
+            <!-- Weekly Average -->
+            <div class="insight-box">
+                <h2>Weekly Average</h2>
+                <div class="values">
+                    <strong id="weekly_avg">Loading...</strong>
+                </div>
+            </div>
+            
+            <!-- Monthly Average -->
+            <div class="insight-box">
+                <h2>Monthly Average</h2>
+                <div class="values">
+                    <strong id="monthly_avg">Loading...</strong>
+                </div>
+            </div>
+            
+            <!-- Yearly Average -->
+            <div class="insight-box">
+                <h2>Yearly Average</h2>
+                <div class="values">
+                    <strong id="yearly_avg">Loading...</strong>
+                </div>
+            </div>
+            
+        </div>
+        
         <br />
         <br />
         <br />
@@ -942,7 +980,7 @@ function renderChart(data) {
                     }
                 },
                 y: {
-                    beginAtZero: true,
+                    // beginAtZero: true,
                 }
             }
         }
@@ -1046,7 +1084,7 @@ function renderInsightChart(data) {
                     }
                 },
                 y: {
-                    beginAtZero: true,
+                    // beginAtZero: true,
                     ticks: {
                         min: minYValue,
                         max: maxYValue
