@@ -7,9 +7,10 @@ import zipfile
 from scripts.upload_data_check import validate_actuals, validate_forecasts
 from datetime import datetime, timedelta  # Make sure to import this at the top of your file
 from scripts.models import get_forecasts
-from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetch_forecasts_from_db, fetch_actuals_from_db_for_insights, fetch_forecasts_from_db_for_insights
+from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetch_forecasts_from_db, fetch_actuals_from_db_for_insights, fetch_forecasts_from_db_for_insights, fetch_actuals_from_db_for_retraining
 import numpy as np
 from pytz import timezone
+from scripts.models import retraining_required, retrain_model
 
 
 app = Flask(__name__)
@@ -187,8 +188,12 @@ def data_upload_endpoint():
                     print("A row with a duplicate primary key was found and skipped.")
                 except Exception as e:
                     print(f"An unexpected error occurred: {e}")
-                # If retrain:
-                    # run josh retraining script
+
+                retraining_data = fetch_actuals_from_db_for_retraining()
+
+                retrain = retraining_required()
+                if retrain:
+                    retrain_model(retraining_data)
 
                 # Fetch last weeks worth of data - To feed into the forecast function we need to go and get the last weeks worth of data (Joshs model expects 1 week lag variables and 2 day lag variables)
                 # Last week + 2 day forecasted variables (load will be null)

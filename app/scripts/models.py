@@ -13,7 +13,6 @@ This file contains the code for the models, feature selection, and data preproce
 """
 
 # Imports
-from scripts.utils import get_root
 from utils import *
 import pandas as pd
 import tensorflow as tf
@@ -23,6 +22,7 @@ from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error,
 from sklearn.feature_selection import mutual_info_regression
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
+import math
 
 def feature_selection(data:pd.DataFrame) -> pd.Series:
     # Seperate Data into Dependent and Independent Variables
@@ -254,15 +254,45 @@ def retraining_required(actuals, forecasts) -> bool:
     2 weeks.
     """
     y = actuals['load_kw']
-    naive_mse = naive(y, 24*7)[0]
-    model_mse = mean_squared_error(actuals['load_kw'].tail(24*7), forecasts['forecasts'])
-    if model_mse < naive_mse:
-        return False
-    else:
+    naive_mse = naive(y, 24*7*2)[0]
+    model_mse = mean_squared_error(y.tail(24*7*2), forecasts['forecasts'])
+    if model_mse > naive_mse:
         return True
+    else:
+        return False
 
 def retrain_model(data) -> None:
-    pass
+    data = preprocessing(data, initial=True)
+    
+    X = data.drop('load_kw', axis='columns', inplace=False)
+    y = data['load_kw']
+
+    # Calculate Number of Days
+    n = len(X) // 24
+    # Approx 70% train, 20% validation, 10% test
+    X1_train = X[:math.floor(n*0.7)*24]
+    X1_val = X[math.floor(n*0.7)*24:math.floor(n*0.9)*24]
+    X1_test = X[math.floor(n*0.9)*24:]
+
+    y_train = y[:math.floor(n*0.7)*24]
+    y_val = y[math.floor(n*0.7)*24:math.floor(n*0.9)*24]
+    y_test = y[math.floor(n*0.9)*24:]
+
+    X2_train = X1_train.drop('lag_1day', axis="columns", inplace=False)
+    X2_val = X1_val.drop('lag_1day', axis="columns", inplace=False)
+    X2_test = X1_test.drop('lag_1day', axis="columns", inplace=False)
+    
+    # Run XGBoost Model 1
+    XGBoost = xgBoostForecaster()
+    XGBoost.build_model()
+    XGBoost.train_model(X1_train, y_train)
+    XGBoost.save_model('xgb1', 'scripts/models')
+
+    # Run XGBoost Model 2
+    XGBoost = xgBoostForecaster()
+    XGBoost.build_model()
+    XGBoost.train_model(X2_train, y_train)
+    XGBoost.save_model('xgb2', 'scripts/models')
 
 def get_insights(forecasts, actuals):
     """
@@ -300,3 +330,10 @@ if __name__=='__main__':
     plt.grid(True)
     plt.tight_layout() 
     plt.show()
+
+    # Test Retraining
+    data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
+    data = data.tail(24*7*3) # Grab last 3 weeks
+    forecasts = pd.DataFrame()
+    forecasts['forecasts'] = np.zeros(24*7*2)
+    print(retraining_required(data, forecasts))
