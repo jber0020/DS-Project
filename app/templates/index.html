@@ -2,8 +2,16 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Electricity Demand Forecasting</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+
     <style>
         .blue-bold-text {
             color: blue;
@@ -122,6 +130,7 @@
         input[type="checkbox"] {
             margin-right: 10px;
         }
+        
 
         .top {
             /* background: linear-gradient(to right, #1e3c72, #2a5298); */
@@ -449,8 +458,7 @@
                 font-size: 23px; /* This increases the font size */
             }
 
-        .header-background {
-            background-image: url('Melbourne_At_Night_from_Southbank_Bridge.jpg');
+        .melbourne {
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -491,6 +499,14 @@
         }
 
 
+        .insight-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 10px;
+            min-width: calc(33% - 20px);
+            box-sizing: border-box;
+        }
 
 
         /* Forecasts/Historical Parts Switch */
@@ -593,6 +609,7 @@
 <body>
 
     <div class="header-background" style="margin-bottom: 20px;">
+        <img class="melbourne" src="./Melbourne_At_Night_from_Southbank_Bridge.jpg">
         <div class="top">
             <span class="text-white" style="font-size: 38px;font-weight: 500;"> Electricity Demand Forecasting System </span>
 
@@ -645,55 +662,73 @@
         </div>
     </div>
 
-    <div id="content" style="background-color: #fff;padding-top: 30px;">
-        <div class="center" style="display: flex;align-items: center;justify-content: center;">
-            <span>Forecasts/Historical</span>
-            <label class="switch" style="margin: 0;font-size: 18px;font-weight: 400;">
-                <span class="labelText">Forecasts</span>
-                <input type="checkbox" class="checkbox">
-                <div class="slider"></div>
-                <span class="labelText">Historical</span>
-            </label>
-        </div>
+    <!-- Forecasts/Historical Section -->
+<div id="content" style="background-color: #fff; padding-top: 30px;">
+    <div class="center" style="display: flex; align-items: center; justify-content: center;">
+        <span>Forecasts/Historical</span>
+    </div>
 
-        <div id="imageSpace" style="border: 15px solid #f8f8f8;">
-            <div>
-                <span>
-                    <div class="pyramid-loader">
-                        <div class="wrapper">
-                            <span class="side side1"></span>
-                            <span class="side side2"></span>
-                            <span class="side side3"></span>
-                            <span class="side side4"></span>
-                            <span class="shadow"></span>
-                        </div>
+    <div id="imageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
+        <!-- Add a canvas here to render the chart -->
+        <canvas id="forecastChart"></canvas>
+        <div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
                     </div>
-                </span>
-            </div>
+                </div>
+            </span>
         </div>
+    </div>
+</div>
 
+<br />
+<br />
+<br />
+<br />
 
-        <br />
-        <br />
-        <br />
-        <br />
+<!-- Insights Section -->
+<div id="content" style="background-color: #fff; padding-top: 30px;">
+    <!-- Title Section -->
+    <div class="center" style="display: flex; align-items: center; justify-content: center;">
+        <span>Insight</span>
+    </div>
 
-        <div id="content">
-            <div class="center">Insight</div>
-            <div id="imageSpace" style="border: 15px solid #f8f8f8;">
-                <span>
-                    <div class="pyramid-loader">
-                        <div class="wrapper">
-                            <span class="side side1"></span>
-                            <span class="side side2"></span>
-                            <span class="side side3"></span>
-                            <span class="side side4"></span>
-                            <span class="shadow"></span>
-                        </div>
+    <!-- Date Selection Section -->
+    <div style="text-align:center; margin: 20px;">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate">
+
+        <label for="endDate" style="margin-left: 20px;">End Date:</label>
+        <input type="date" id="endDate">
+
+        <button onclick="fetchInsightsData()" style="margin-left: 20px;">GET DATA</button>
+    </div>
+
+    <!-- Image/Chart Space -->
+    <div id="insightImageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
+        <canvas id="insightChart"></canvas>
+        <div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
                     </div>
-                </span>
-            </div>
+                </div>
+            </span>
         </div>
+    </div>
+</div>
+        
 
         <br />
         <br />
@@ -701,22 +736,54 @@
         <br />
 
         <div class="center">DataBase</div>
-        <div id="imageSpace" style="border: 15px solid #f8f8f8;">
-            <div>
-                <span>
-                    <div class="pyramid-loader">
-                        <div class="wrapper">
-                            <span class="side side1"></span>
-                            <span class="side side2"></span>
-                            <span class="side side3"></span>
-                            <span class="side side4"></span>
-                            <span class="shadow"></span>
-                        </div>
-                    </div>
-                </span>
-                <br />
-            </div>
-        </div>
+<div id="dataInsightsSpace" style="border: 15px solid #f8f8f8; display: flex; flex-wrap: wrap; justify-content: space-between; padding: 20px;">
+
+    <!-- Yesterday/Today/Tomorrow's Max -->
+    <div class="insight-box">
+        <h3>Yesterday/Today/Tomorrow's Max</h3>
+        <p id="yesterday_max">Loading...</p>
+        <p id="today_max">Loading...</p>
+        <p id="tomorrow_max">Loading...</p>
+    </div>
+
+    <!-- Yesterday/Today/Tomorrow's Min -->
+    <div class="insight-box">
+        <h3>Yesterday/Today/Tomorrow's Min</h3>
+        <p id="yesterday_min">Loading...</p>
+        <p id="today_min">Loading...</p>
+        <p id="tomorrow_min">Loading...</p>
+    </div>
+
+    <!-- Yesterday/Today/Tomorrow Average -->
+    <div class="insight-box">
+        <h3>Yesterday/Today/Tomorrow Average</h3>
+        <p id="yesterday_avg">Loading...</p>
+        <p id="today_avg">Loading...</p>
+        <p id="tomorrow_avg">Loading...</p>
+    </div>
+
+    <!-- Weekly Average -->
+    <div class="insight-box">
+        <h3>Weekly Average</h3>
+        <p id="weekly_avg">Loading...</p>
+    </div>
+
+    <!-- Monthly Average -->
+    <div class="insight-box">
+        <h3>Monthly Average</h3>
+        <p id="monthly_avg">Loading...</p>
+    </div>
+
+    <!-- Yearly Average -->
+    <div class="insight-box">
+        <h3>Yearly Average</h3>
+        <p id="yearly_avg">Loading...</p>
+    </div>
+
+</div>
+
+<button onclick="fetchDataInsights()">Generate Data Insights</button>
+
 
 
 
@@ -770,35 +837,264 @@
                 modal.style.display = "none";
             }
         }
-        // New function to handle file upload
-        function uploadFile() {
-            const fileInput = document.getElementById('file');
-            const file = fileInput.files[0];
+async function uploadFile() {
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
 
-            if (file && ['csv', 'xlsx', 'xls', 'zip'].includes(file.name.split('.').pop().toLowerCase())) {
-                const formData = new FormData();
-                formData.append('file', file);
+    if (file && ['csv', 'xlsx', 'xls', 'zip'].includes(file.name.split('.').pop().toLowerCase())) {
+        const formData = new FormData();
+        formData.append('file', file);
 
-                fetch('/api/upload_files', {
-                    method: 'POST',
-                    body: formData,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Display a success message or handle the response
-                    alert(data.message || data.error);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while uploading the file.');
-                });
-            } else {
-                alert('Invalid file type. Please upload a ZIP, CSV or Excel file.');
+        try {
+            let response = await fetch('/api/upload_files', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            let data = await response.json();
+            
+            if(data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Reformat the data for the chart
+            const formattedData = data.data.map(row => {
+                return {
+                    forecast: row.forecasts,  // Extract 'forecasts' value
+                    date: row.time            // Extract 'time' value
+                };
+            });
+
+            renderChart(formattedData);
+
+            // Fetch the data insights once the chart data is fetched and rendered
+            await fetchDataInsights(file.name);
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while uploading the file.');
+        }
+    } else {
+        alert('Invalid file type. Please upload a ZIP, CSV or Excel file.');
+    }
+}
+
+
+function renderChart(data) {
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+    
+    const labels = data.map(d => moment(d.date, 'ddd, DD MMM YYYY HH:mm:ss GMT').toDate());
+    const forecastValues = data.map(d => d.forecast);
+    
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+            label: 'Forecast',
+            data: forecastValues,
+            borderColor: 'rgba(75, 192, 192, 1)',  // Cyan color
+            fill: false,
+            pointRadius: 5, // Increase the size of the points
+        }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'xy'
+                    },
+                    zoom: {
+                        enabled: true,
+                        mode: 'xy',
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        displayFormats: {
+                            hour: 'HH:mm'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                }
             }
         }
+    });
+    document.querySelector("#imageSpace .pyramid-loader").style.display = "none";
+
+}
 
         // Attach the function to input file change event
         document.getElementById('file').addEventListener('change', uploadFile);
-    </script>
+
+
+function fetchInsightsData() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates.');
+        return;
+    }
+
+    fetch('/api/get_historical_actuals_and_forecasts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            startDate: startDate,
+            endDate: endDate
+        })
+    })
+    .then(response => response.json())
+    .then(data => renderInsightChart(data))
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while fetching the data.');
+    });
+}
+
+let currentChart = null;
+
+function renderInsightChart(data) {
+    const ctx = document.getElementById('insightChart').getContext('2d');
+    
+    if (currentChart) {
+        currentChart.destroy();
+    }
+
+    const labels = data.map(d => moment(d.time, 'ddd, DD MMM YYYY HH:mm:ss [GMT]').toDate());
+    const actualValues = data.map(d => d.actual_load_kw);
+    const forecast1Values = data.map(d => d.forecast_forecast_1);
+    const forecast2Values = data.map(d => d.forecast_forecast_2);
+
+    // Determine min and max values for axes
+    const minDate = new Date(Math.min(...labels));
+    const maxDate = new Date(Math.max(...labels));
+
+    const allValues = [...actualValues, ...forecast1Values, ...forecast2Values];
+    const minYValue = Math.min(...allValues);
+    const maxYValue = Math.max(...allValues);
+    console.log(minDate, maxDate, minYValue, maxYValue);
+
+
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Actual Load',
+                    data: actualValues,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                },
+                {
+                    label: 'Forecast 1',
+                    data: forecast1Values,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                },
+                {
+                    label: 'Forecast 2',
+                    data: forecast2Values,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM DD, YYYY'
+                        },
+                        min: minDate,
+                        max: maxDate
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        min: minYValue,
+                        max: maxYValue
+                    }
+                }
+            }
+        }
+
+    });
+
+    document.querySelector("#insightImageSpace .pyramid-loader").style.display = "none";
+}
+
+async function fetchDataInsights(filename) {
+    try {
+        let response = await fetch(`/api/data-insights?filename=${filename}`);
+
+        // If the response is not ok (e.g., status code is not in the 200-299 range), throw an error
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        let data = await response.json();
+
+        // Update the frontend with the received data:
+        document.getElementById("yesterday_max").innerText = data.yesterday_max;
+        document.getElementById("today_max").innerText = data.today_max;
+        document.getElementById("tomorrow_max").innerText = data.tomorrow_max;
+
+        document.getElementById("yesterday_min").innerText = data.yesterday_min;
+        document.getElementById("today_min").innerText = data.today_min;
+        document.getElementById("tomorrow_min").innerText = data.tomorrow_min;
+
+        document.getElementById("yesterday_avg").innerText = data.yesterday_avg;
+        document.getElementById("today_avg").innerText = data.today_avg;
+        document.getElementById("tomorrow_avg").innerText = data.tomorrow_avg;
+
+        document.getElementById("weekly_avg").innerText = data.weekly_avg;
+        document.getElementById("monthly_avg").innerText = data.monthly_avg;
+        document.getElementById("yearly_avg").innerText = data.yearly_avg;
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+        alert("There was a problem fetching the data insights. Please try again.");
+    }
+}
+
+
+</script>
 </body>
 </html>

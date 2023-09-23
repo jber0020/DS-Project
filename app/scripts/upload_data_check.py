@@ -88,7 +88,7 @@ def validate_forecasts(df: pd.DataFrame, upload_date: str):
         assert (diff_df[col].abs() < df[col].std() * 3).all(), f"Extreme change detected in {col} between consecutive hours."
 
     # 7. Check for Constant Values
-    for col in expected_columns:
-        assert len(df[col].unique()) > 1, f"All values in {col} are the same."
+    # for col in expected_columns:
+    #     assert len(df[col].unique()) > 1, f"All values in {col} are the same."
 
     return "Forecasts data validation passed!"

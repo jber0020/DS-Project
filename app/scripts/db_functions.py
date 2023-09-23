@@ -285,6 +285,81 @@ def fetch_forecasts_from_db(reference_date):
 
         return df
 
+def fetch_actuals_from_db_for_insights(start_date, end_date):
+    melbourne_tz = pytz.timezone('Australia/Melbourne')
+
+    # Convert to Melbourne timezone for consistency
+    start_datetime = pd.to_datetime(start_date).tz_localize(melbourne_tz)
+    end_datetime = pd.to_datetime(end_date).tz_localize(melbourne_tz)
+
+    # Set your database connection parameters
+    db_params = {
+        'dbname': 'elec_db',
+        'user': 'ds4user',
+        'password': 'FIT3163!',  # Please be cautious about hardcoding passwords in your code
+        'host': 'ds4db.postgres.database.azure.com',
+        'port': '5432'
+    }
+
+    # Connect to the database
+    conn = psycopg2.connect(**db_params)
+
+    # Use pandas to fetch data and convert it to a DataFrame
+    query = f"""
+        SELECT time, load_kw
+        FROM elec_actuals 
+        WHERE time >= '{start_datetime}' 
+        AND time <= '{end_datetime}'
+        ORDER BY time ASC
+    """
+    df = pd.read_sql(query, conn)
+
+    # Convert the 'time' column to pandas datetime
+    df['time'] = pd.to_datetime(df['time'])
+
+    # Close the database connection
+    conn.close()
+
+    return df
+
+
+def fetch_forecasts_from_db_for_insights(start_date, end_date):
+    melbourne_tz = pytz.timezone('Australia/Melbourne')
+
+    # Convert to Melbourne timezone for consistency
+    start_datetime = pd.to_datetime(start_date).tz_localize(melbourne_tz)
+    end_datetime = pd.to_datetime(end_date).tz_localize(melbourne_tz)
+
+    # Set your database connection parameters
+    db_params = {
+        'dbname': 'elec_db',
+        'user': 'ds4user',
+        'password': 'FIT3163!',  # Please be cautious about hardcoding passwords in your code
+        'host': 'ds4db.postgres.database.azure.com',
+        'port': '5432'
+    }
+
+    # Connect to the database
+    conn = psycopg2.connect(**db_params)
+
+    # Use pandas to fetch data and convert it to a DataFrame
+    query = f"""
+        SELECT time, forecast_1, forecast_2
+        FROM elec_forecasts
+        WHERE time >= '{start_datetime}' 
+        AND time <= '{end_datetime}'
+        ORDER BY time ASC
+    """
+    df = pd.read_sql(query, conn)
+
+    # Convert the 'time' column to pandas datetime
+    df['time'] = pd.to_datetime(df['time'])
+
+    # Close the database connection
+    conn.close()
+
+    return df
+
 # Test
 # data = fetch_data_from_actuals("2020-03-30")
 # print(data)

@@ -7,7 +7,9 @@ import zipfile
 from scripts.upload_data_check import validate_actuals, validate_forecasts
 from datetime import datetime, timedelta  # Make sure to import this at the top of your file
 from scripts.models import get_forecasts
-from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetch_forecasts_from_db
+from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetch_forecasts_from_db, fetch_actuals_from_db_for_insights, fetch_forecasts_from_db_for_insights
+import numpy as np
+from pytz import timezone
 
 
 app = Flask(__name__)
@@ -43,48 +45,60 @@ def extract_date_from_filename(filename: str) -> str:
     return formatted_date
 
 def get_data_insights(forecasts, historical_df):
-    import pandas as pd
-
-def get_data_insights(forecasts, historical_df):
     # Ensure the dataframes are sorted by time
     forecasts = forecasts.sort_values(by="time")
     historical_df = historical_df.sort_values(by="time")
 
-    # Get stats for the forecast data
-    first_24h = forecasts.iloc[:24]
-    second_24h = forecasts.iloc[24:]
+    # Define a helper function to safely extract stats
+    def safe_stat(data, stat_func):
+        try:
+            return stat_func(data)
+        except:
+            return "NA"
+
+    # Get current time independently from data and set timezone to Melbourne
+    current_time = pd.Timestamp.now(tz='Australia/Melbourne')
+
+    # Define the period for "yesterday", "today", "tomorrow", "last week", and "last month" based on 8AM to 7AM schedule
+    start_time_today = pd.Timestamp(current_time.date(), tz=current_time.tz) + pd.Timedelta(hours=8)
+    start_time_yesterday = start_time_today - pd.Timedelta(days=1)
+    end_time_today = start_time_today + pd.Timedelta(days=1)
+    start_time_last_week = start_time_today - pd.Timedelta(weeks=1)
+    start_time_last_month = start_time_today - pd.Timedelta(weeks=4)
+    start_time_last_year = start_time_today - pd.Timedelta(weeks=52)
+
+    # Extract statistics from yesterday, today, and tomorrow
+    yesterday_demand = historical_df[(historical_df["time"] >= start_time_yesterday) & (historical_df["time"] < start_time_today)]
+    today_demand = historical_df[(historical_df["time"] >= start_time_today) & (historical_df["time"] < end_time_today)]
+    tomorrow_demand = forecasts.iloc[:24]  # Assuming the forecasts start from the current "day" and contain data for at least the next 24 hours
 
     insights = {
-        "first_24h_min": first_24h["load_kw"].min(),
-        "first_24h_max": first_24h["load_kw"].max(),
-        "first_24h_avg": first_24h["load_kw"].mean(),
-        
-        "second_24h_min": second_24h["load_kw"].min(),
-        "second_24h_max": second_24h["load_kw"].max(),
-        "second_24h_avg": second_24h["load_kw"].mean()
+        "yesterday_max": safe_stat(yesterday_demand["load_kw"], max),
+        "yesterday_min": safe_stat(yesterday_demand["load_kw"], min),
+        "yesterday_avg": safe_stat(yesterday_demand["load_kw"], pd.Series.mean),
+
+        "today_max": safe_stat(today_demand["load_kw"], max),
+        "today_min": safe_stat(today_demand["load_kw"], min),
+        "today_avg": safe_stat(today_demand["load_kw"], pd.Series.mean),
+
+        "tomorrow_max": safe_stat(tomorrow_demand["load_kw"], max),
+        "tomorrow_min": safe_stat(tomorrow_demand["load_kw"], min),
+        "tomorrow_avg": safe_stat(tomorrow_demand["load_kw"], pd.Series.mean)
     }
 
-    # Define the period for "yesterday", "last week", and "last month"
-    end_time_today = forecasts["time"].iloc[0]
-    start_time_yesterday = end_time_today - pd.Timedelta(days=1)
-    start_time_last_week = end_time_today - pd.Timedelta(weeks=1)
-    start_time_last_month = end_time_today - pd.Timedelta(weeks=4)  # Assuming 4 weeks for simplicity
-
     # Calculate the average demand for the defined periods
-    yesterday_demand = historical_df[(historical_df["time"] >= start_time_yesterday) & (historical_df["time"] < end_time_today)]
-    last_week_demand = historical_df[(historical_df["time"] >= start_time_last_week) & (historical_df["time"] < end_time_today)]
-    last_month_demand = historical_df[(historical_df["time"] >= start_time_last_month) & (historical_df["time"] < end_time_today)]
-    
-    today_avg_demand = forecasts["load_kw"].mean()
-    insights["diff_yesterday"] = today_avg_demand - yesterday_demand["load_kw"].mean()
-    insights["diff_last_week"] = today_avg_demand - last_week_demand["load_kw"].mean()
-    insights["diff_last_month"] = today_avg_demand - last_month_demand["load_kw"].mean()
+    last_week_demand = historical_df[(historical_df["time"] >= start_time_last_week) & (historical_df["time"] < start_time_today)]
+    last_month_demand = historical_df[(historical_df["time"] >= start_time_last_month) & (historical_df["time"] < start_time_today)]
+    last_year_demand = historical_df[(historical_df["time"] >= start_time_last_year) & (historical_df["time"] < start_time_today)]
 
-    insights["percent_diff_yesterday"] = (insights["diff_yesterday"] / yesterday_demand["load_kw"].mean()) * 100
-    insights["percent_diff_last_week"] = (insights["diff_last_week"] / last_week_demand["load_kw"].mean()) * 100
-    insights["percent_diff_last_month"] = (insights["diff_last_month"] / last_month_demand["load_kw"].mean()) * 100
+    insights["weekly_avg"] = safe_stat(last_week_demand["load_kw"], pd.Series.mean)
+    insights["monthly_avg"] = safe_stat(last_month_demand["load_kw"], pd.Series.mean)
+    insights["yearly_avg"] = safe_stat(last_year_demand["load_kw"], pd.Series.mean)
 
     return insights
+
+
+
 
 @app.route('/')
 def index():
@@ -108,7 +122,9 @@ def data_upload_endpoint():
         file_ext = filename.rsplit('.', 1)[1].lower()
 
         # Extract date from the filename
+        print("here works", filename)
         extracted_date = extract_date_from_filename(filename)
+        print("here works", extracted_date)
 
         if file_ext == 'zip':
             with zipfile.ZipFile(filepath, 'r') as zip_ref:
@@ -167,8 +183,10 @@ def data_upload_endpoint():
 
                 # data_insights = get_data_insights(two_day_forecasts)
 
-                #return forecasts
-                # return jsonify(two_day_forecasts)
+                return jsonify({
+                    "message": "Data processed successfully",
+                    "data": two_day_forecasts.to_dict(orient='records')
+                })
 
         # For direct file uploads (not ZIP)
         # else:
@@ -182,6 +200,66 @@ def data_upload_endpoint():
         #     return jsonify({"message": "File uploaded and loaded into DataFrame successfully!"})
 
     # return jsonify({"error": "File type not allowed"})
+
+@app.route('/api/get_historical_actuals_and_forecasts', methods=['POST'])
+def data_historical_upload_endpoint():
+    # Assuming the dates are being sent as JSON payload
+    data = request.get_json()
+
+    start_date = data['startDate']
+    end_date = data['endDate']
+
+    actuals_df = fetch_actuals_from_db_for_insights(start_date, end_date)
+    forecasts_df = fetch_forecasts_from_db_for_insights(start_date, end_date)
+
+    # If there are any overlapping column names (apart from 'time'), you might want to rename them first
+    actuals_df = actuals_df.add_prefix('actual_')
+    forecasts_df = forecasts_df.add_prefix('forecast_')
+
+    # Ensure the 'time' column retains its original name
+    actuals_df.rename(columns={'actual_time': 'time'}, inplace=True)
+    forecasts_df.rename(columns={'forecast_time': 'time'}, inplace=True)
+
+    # Merging the two dataframes on the 'time' column using an outer join
+    merged_df = pd.merge(actuals_df, forecasts_df, on='time', how='outer')
+
+    # Sort by the 'time' column to ensure the merged data is in chronological order
+    merged_df = merged_df.sort_values(by='time')
+
+    merged_df.to_csv("merged.csv")
+
+    # Replace NaN values with None
+    merged_df.replace({np.nan: None}, inplace=True)
+
+    # Convert the DataFrame to a dictionary and send it as a response
+    return jsonify(merged_df.to_dict(orient='records'))
+
+@app.route('/api/data-insights', methods=['GET'])
+def get_insights():
+    filename = request.args.get('filename')
+    print(filename)
+    
+    if not filename:
+        return jsonify({"error": "Filename not provided."}), 400
+
+    # Extract date string from the filename
+    current_date_str = extract_date_from_filename(filename)
+    
+    # Convert the date string to a datetime object
+    current_date = datetime.strptime(current_date_str, '%Y-%m-%d')
+
+    # Calculate two_days_later and year_ago based on current_date
+    two_days_later = current_date + timedelta(days=2)
+    year_ago = current_date - timedelta(days=367)
+    
+    forecasts = fetch_forecasts_from_db_for_insights(current_date, two_days_later)
+    historical_df = fetch_actuals_from_db_for_insights(year_ago, two_days_later)
+
+    insights = get_data_insights(forecasts, historical_df)
+
+    # Return the insights as a JSON object
+    return jsonify(insights)
+
 
 def test(extracted_date):
     db_manager = PostgreSQLUploader()
