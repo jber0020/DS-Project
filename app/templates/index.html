@@ -13,7 +13,110 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 
     <style>
-        .blue-bold-text {
+        #dataInsightsSpace {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+        grid-gap: 20px; /* Defines the space between grid items */
+        justify-items: center; /* Horizontally aligns items to the center of their grid area */
+        align-items: center; /* Vertically aligns items to the center of their grid area */
+        padding: 20px;
+        border: 15px solid #f8f8f8;
+    }
+
+    .date-range {
+        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
+        vertical-align: middle;
+        color: darkblue;
+    }
+
+    .insight-box {
+        /* Define a fixed width and height for each box, if desired */
+        margin: 5px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .insight-box h2 {
+        color: darkblue;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .insight-box .days span,
+    .insight-box .values span {
+        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
+    }
+
+    .insight-box .days strong,
+    .insight-box .values strong {
+        font-size: 1.5em;  /* "Today" remains the same size as before */
+        font-weight: bold;
+    }
+        
+        .header-background {
+            background-image: url(https://github.com/jber0020/DS-Project/blob/chuan/project_template/app/templates/Melbourne_At_Night_from_Southbank_Bridge.jpg?raw=true);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 50px 0;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+
+    #dataInsightsSpace {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+        grid-gap: 20px; /* Defines the space between grid items */
+        justify-items: center; /* Horizontally aligns items to the center of their grid area */
+        align-items: center; /* Vertically aligns items to the center of their grid area */
+        padding: 20px;
+        border: 15px solid #f8f8f8;
+    }
+
+    .date-range {
+        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
+        vertical-align: middle;
+        color: darkblue;
+    }
+
+    .insight-box {
+        /* Define a fixed width and height for each box, if desired */
+        margin: 5px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .insight-box h2 {
+        color: darkblue;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .insight-box .days span,
+    .insight-box .values span {
+        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
+    }
+
+    .insight-box .days strong,
+    .insight-box .values strong {
+        font-size: 1.5em;  /* "Today" remains the same size as before */
+        font-weight: bold;
+    }
+
+    .blue-bold-text {
             color: blue;
             font-weight: bold;
         }
@@ -130,7 +233,6 @@
         input[type="checkbox"] {
             margin-right: 10px;
         }
-        
 
         .top {
             /* background: linear-gradient(to right, #1e3c72, #2a5298); */
@@ -329,7 +431,7 @@
             }
         }
         /* upload function */
-        .custom-file-upload {
+        .custum-file-upload {
             height: 200px;
             width: 300px;
             display: flex;
@@ -346,29 +448,29 @@
             box-shadow: 0px 48px 35px -48px rgba(0,0,0,0.1);
         }
 
-            .custom-file-upload .icon {
+            .custum-file-upload .icon {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
 
-                .custom-file-upload .icon svg {
+                .custum-file-upload .icon svg {
                     height: 80px;
                     fill: rgba(75, 85, 99, 1);
                 }
 
-            .custom-file-upload .text {
+            .custum-file-upload .text {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
 
-                .custom-file-upload .text span {
+                .custum-file-upload .text span {
                     font-weight: 400;
                     color: rgba(75, 85, 99, 1);
                 }
 
-            .custom-file-upload input {
+            .custum-file-upload input {
                 display: none;
             }
         /* upload function*/
@@ -458,15 +560,6 @@
                 font-size: 23px; /* This increases the font size */
             }
 
-        .melbourne {
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            padding: 50px 0;
-            margin-top: 0;
-            padding-top: 0;
-        }
-
 
         .center {
             display: grid;
@@ -499,51 +592,6 @@
         }
 
 
-    #dataInsightsSpace {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
-        grid-gap: 20px; /* Defines the space between grid items */
-        justify-items: center; /* Horizontally aligns items to the center of their grid area */
-        align-items: center; /* Vertically aligns items to the center of their grid area */
-        padding: 20px;
-        border: 15px solid #f8f8f8;
-    }
-
-    .date-range {
-        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
-        vertical-align: middle;
-        color: darkblue;
-    }
-
-    .insight-box {
-        /* Define a fixed width and height for each box, if desired */
-        margin: 5px;
-        padding: 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        text-align: center;
-    }
-
-    .center {
-        text-align: center;
-    }
-
-    .insight-box h2 {
-        color: darkblue;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .insight-box .days span,
-    .insight-box .values span {
-        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
-    }
-
-    .insight-box .days strong,
-    .insight-box .values strong {
-        font-size: 1.5em;  /* "Today" remains the same size as before */
-        font-weight: bold;
-    }
 
 
         /* Forecasts/Historical Parts Switch */
@@ -640,13 +688,12 @@
             top: 80px;
             transition: 1s;
         }
+        
     </style>
 </head>
 
 <body>
-
     <div class="header-background" style="margin-bottom: 20px;">
-        <img class="melbourne" src="./Melbourne_At_Night_from_Southbank_Bridge.jpg">
         <div class="top">
             <span class="text-white" style="font-size: 38px;font-weight: 500;"> Electricity Demand Forecasting System </span>
 

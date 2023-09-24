@@ -13,7 +13,7 @@ This file contains the code for the models, feature selection, and data preproce
 """
 
 # Imports
-from utils import *
+from scripts.utils import get_root
 import pandas as pd
 import tensorflow as tf
 import numpy as np

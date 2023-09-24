@@ -118,9 +118,6 @@ def get_data_insights(forecasts, historical_df, current_time):
     return insights
 
 
-
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -139,13 +136,10 @@ def data_upload_endpoint():
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        "Data_Jan 18 8AM.zip"
         file_ext = filename.rsplit('.', 1)[1].lower()
 
         # Extract date from the filename
-        print("here works", filename)
         extracted_date = extract_date_from_filename(filename)
-        print("here works", extracted_date)
 
         if file_ext == 'zip':
             with zipfile.ZipFile(filepath, 'r') as zip_ref:
@@ -169,7 +163,6 @@ def data_upload_endpoint():
                 actuals = pd.read_csv(actuals_path)
                 forecasts = pd.read_csv(forecasts_path)
 
-                #print("yoooo", extracted_date)
                 print(validate_actuals(actuals, extracted_date))
                 print(validate_forecasts(forecasts, extracted_date))
 
@@ -189,12 +182,36 @@ def data_upload_endpoint():
                 except Exception as e:
                     print(f"An unexpected error occurred: {e}")
 
-                retraining_data = fetch_actuals_from_db_for_retraining()
+                start_datetime_actuals = (pd.to_datetime(extracted_date) - pd.Timedelta(days=35)).replace(hour=8, minute=0, second=0)
+                end_datetime_actuals = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
 
-                retrain = retraining_required()
-                if retrain:
+                start_datetime_forecasts = (pd.to_datetime(extracted_date) - pd.Timedelta(days=28)).replace(hour=8, minute=0, second=0)
+                end_datetime_forecasts = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
+
+                retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
+                retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
+                retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
+
+                # Join the two DataFrames on the 'time' column
+                merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
+
+                # Order by 'time' in ascending order
+                merged_data = merged_data.sort_values(by='time')
+
+                # Always keep the first 7 rows
+                first_seven_rows = merged_data.iloc[:7]
+
+                # After the first 7 rows, remove any row with a null value in any of the 3 columns
+                filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
+
+                # Concatenate the first 7 rows with the filtered data
+                final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
+
+                # Check if there are at least 14 rows of data after the first 7 rows
+                if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(final_retrain_data):
+                    retraining_data = fetch_actuals_from_db_for_retraining()
                     retrain_model(retraining_data)
-
+                    
                 # Fetch last weeks worth of data - To feed into the forecast function we need to go and get the last weeks worth of data (Joshs model expects 1 week lag variables and 2 day lag variables)
                 # Last week + 2 day forecasted variables (load will be null)
                 actuals_df = fetch_actuals_from_db(extracted_date)
@@ -206,25 +223,11 @@ def data_upload_endpoint():
                 # Take the df and upload those forecasts to db
                 db_manager.upload_model_forecasts(two_day_forecasts)
 
-                # data_insights = get_data_insights(two_day_forecasts)
-
                 return jsonify({
                     "message": "Data processed successfully",
                     "data": two_day_forecasts.to_dict(orient='records')
                 })
 
-        # For direct file uploads (not ZIP)
-        # else:
-        #     if file_ext == 'csv':
-        #         df = pd.read_csv(filepath)
-        #     elif file_ext in ['xlsx', 'xls']:
-        #         df = pd.read_excel(filepath)
-        #     # You can extend this to handle other file types if necessary
-
-        #     # Return success message after processing single file
-        #     return jsonify({"message": "File uploaded and loaded into DataFrame successfully!"})
-
-    # return jsonify({"error": "File type not allowed"})
 
 @app.route('/api/get_historical_actuals_and_forecasts', methods=['POST'])
 def data_historical_upload_endpoint():

@@ -206,12 +206,10 @@ class PostgreSQLUploader:
 
 
 def fetch_actuals_from_db(reference_date):
-        melbourne_tz = pytz.timezone('Australia/Melbourne')
 
         # Dates for 8AM one week ago and 7AM of the reference_date
-        start_datetime = (pd.to_datetime(reference_date) - pd.Timedelta(days=7)).replace(hour=8, minute=0, second=0).tz_localize(melbourne_tz)
-        end_datetime = pd.to_datetime(reference_date).replace(hour=7, minute=0, second=0).tz_localize(melbourne_tz)
-
+        start_datetime = (pd.to_datetime(reference_date) - pd.Timedelta(days=7)).replace(hour=8, minute=0, second=0)
+        end_datetime = pd.to_datetime(reference_date).replace(hour=7, minute=0, second=0)
         start_date = start_datetime.strftime('%Y-%m-%d %H:%M:%S')
         end_date = end_datetime.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -245,8 +243,7 @@ def fetch_actuals_from_db(reference_date):
 
         return df
 
-def fetch_actuals_from_db(reference_date):
-        melbourne_tz = pytz.timezone('Australia/Melbourne')
+def fetch_actuals_from_db_for_retraining():
 
         # Set your database connection parameters
         db_params = {
@@ -277,11 +274,10 @@ def fetch_actuals_from_db(reference_date):
         return df
 
 def fetch_forecasts_from_db(reference_date):
-        melbourne_tz = pytz.timezone('Australia/Melbourne')
 
         # Dates for 8AM one week ago and 7AM of the reference_date
-        start_datetime = pd.to_datetime(reference_date).replace(hour=8, minute=0, second=0).tz_localize(melbourne_tz)
-        end_datetime = (pd.to_datetime(reference_date) + pd.Timedelta(days=2)).replace(hour=7, minute=0, second=0).tz_localize(melbourne_tz)
+        start_datetime = pd.to_datetime(reference_date).replace(hour=8, minute=0, second=0)
+        end_datetime = (pd.to_datetime(reference_date) + pd.Timedelta(days=2)).replace(hour=7, minute=0, second=0)
 
         start_date = start_datetime.strftime('%Y-%m-%d %H:%M:%S')
         end_date = end_datetime.strftime('%Y-%m-%d %H:%M:%S')
