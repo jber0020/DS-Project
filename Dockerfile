@@ -16,7 +16,6 @@ COPY ./app .
 
 # Set environment variable to tell Flask to run in production mode
 ENV FLASK_ENV=production
-ENV OPENAI_API_KEY=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
 
 # Make port 5000 available outside the container
 EXPOSE 5000
