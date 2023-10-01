@@ -45,8 +45,6 @@ def extract_date_from_filename(filename: str) -> str:
     formatted_date = date_obj.strftime('%Y-%m-%d')
     return formatted_date
 
-import pandas as pd
-
 def get_data_insights(forecasts, historical_df, current_time):
     if not isinstance(current_time, pd.Timestamp):
         current_time = pd.Timestamp(current_time)
@@ -188,29 +186,29 @@ def data_upload_endpoint():
                 start_datetime_forecasts = (pd.to_datetime(extracted_date) - pd.Timedelta(days=28)).replace(hour=8, minute=0, second=0)
                 end_datetime_forecasts = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
 
-                retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
-                retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
-                retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
+                # retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
+                # retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
+                # retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
 
-                # Join the two DataFrames on the 'time' column
-                merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
+                # # Join the two DataFrames on the 'time' column
+                # merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
 
-                # Order by 'time' in ascending order
-                merged_data = merged_data.sort_values(by='time')
+                # # Order by 'time' in ascending order
+                # merged_data = merged_data.sort_values(by='time')
 
-                # Always keep the first 7 rows
-                first_seven_rows = merged_data.iloc[:7]
+                # # Always keep the first 7 rows
+                # first_seven_rows = merged_data.iloc[:7]
 
-                # After the first 7 rows, remove any row with a null value in any of the 3 columns
-                filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
+                # # After the first 7 rows, remove any row with a null value in any of the 3 columns
+                # filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
 
-                # Concatenate the first 7 rows with the filtered data
-                final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
+                # # Concatenate the first 7 rows with the filtered data
+                # final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
 
-                # Check if there are at least 14 rows of data after the first 7 rows
-                if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(final_retrain_data):
-                    retraining_data = fetch_actuals_from_db_for_retraining()
-                    retrain_model(retraining_data)
+                # # Check if there are at least 14 rows of data after the first 7 rows
+                # if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(final_retrain_data):
+                #     retraining_data = fetch_actuals_from_db_for_retraining()
+                #     retrain_model(retraining_data)
                     
                 # Fetch last weeks worth of data - To feed into the forecast function we need to go and get the last weeks worth of data (Joshs model expects 1 week lag variables and 2 day lag variables)
                 # Last week + 2 day forecasted variables (load will be null)
@@ -219,7 +217,6 @@ def data_upload_endpoint():
 
                 combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
                 two_day_forecasts = get_forecasts(combined_df)
-                two_day_forecasts.to_csv("fopre.csv")
                 # Take the df and upload those forecasts to db
                 db_manager.upload_model_forecasts(two_day_forecasts)
 
