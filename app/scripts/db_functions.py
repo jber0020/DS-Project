@@ -349,7 +349,6 @@ def fetch_actuals_from_db_for_insights(start_date, end_date):
 
     return df
 
-
 def fetch_forecasts_from_db_for_insights(start_date, end_date):
     melbourne_tz = pytz.timezone('Australia/Melbourne')
 

@@ -11,6 +11,7 @@ from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetc
 import numpy as np
 from pytz import timezone
 from scripts.models import retraining_required, retrain_model
+from chatbot.chatbot import Chatbot
 
 
 app = Flask(__name__)
@@ -24,6 +25,9 @@ UPLOAD_FOLDER = 'upload_data/'  # replace with your desired upload folder
 ALLOWED_EXTENSIONS = {'zip'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+db_manager = PostgreSQLUploader()
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -44,8 +48,6 @@ def extract_date_from_filename(filename: str) -> str:
     # Format the datetime object to 'YYYY-MM-DD'
     formatted_date = date_obj.strftime('%Y-%m-%d')
     return formatted_date
-
-import pandas as pd
 
 def get_data_insights(forecasts, historical_df, current_time):
     if not isinstance(current_time, pd.Timestamp):
@@ -117,6 +119,100 @@ def get_data_insights(forecasts, historical_df, current_time):
 
     return insights
 
+def get_uploaded_file():
+    if 'file' not in request.files:
+        return None
+    file = request.files['file']
+    if file.filename == '':
+        return None
+    return file
+
+def save_file(file, filename):
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    return filepath
+
+def process_zip_file(filepath, filename, extracted_date):
+    if filename.endswith('.zip'):
+        with zipfile.ZipFile(filepath, 'r') as zip_ref:
+            zip_ref.extractall(app.config['UPLOAD_FOLDER'])
+
+            actuals_filename = None
+            forecasts_filename = None
+
+            for name in zip_ref.namelist():
+                if "Actuals_" in name:
+                    actuals_filename = name
+                elif "Forecasts_" in name:
+                    forecasts_filename = name
+
+            if not (actuals_filename and forecasts_filename):
+                return jsonify({"error": "ZIP file doesn't contain the required files."})
+
+            actuals_path = os.path.join(app.config['UPLOAD_FOLDER'], actuals_filename)
+            forecasts_path = os.path.join(app.config['UPLOAD_FOLDER'], forecasts_filename)
+
+            actuals = pd.read_csv(actuals_path)
+            forecasts = pd.read_csv(forecasts_path)
+
+            print(validate_actuals(actuals, extracted_date))
+            print(validate_forecasts(forecasts, extracted_date))
+
+            # Actuals file - Upload the latest actuals to db
+            try:
+                db_manager.upload_raw_actuals_csv(actuals_path)
+            except psycopg2.errors.UniqueViolation:
+                print("A row with a duplicate primary key was found and skipped.")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+
+            try:
+                db_manager.upload_raw_forecasts_csv(forecasts_path)
+            except psycopg2.errors.UniqueViolation:
+                print("A row with a duplicate primary key was found and skipped.")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+
+def retrain_framework(extracted_date):
+    start_datetime_actuals = (pd.to_datetime(extracted_date) - pd.Timedelta(days=35)).replace(hour=8, minute=0, second=0)
+    end_datetime_actuals = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
+
+    start_datetime_forecasts = (pd.to_datetime(extracted_date) - pd.Timedelta(days=28)).replace(hour=8, minute=0, second=0)
+    end_datetime_forecasts = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
+
+    retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
+    retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
+    retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
+
+    # Join the two DataFrames on the 'time' column
+    merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
+
+    # Order by 'time' in ascending order
+    merged_data = merged_data.sort_values(by='time')
+
+    # Always keep the first 7 rows
+    first_seven_rows = merged_data.iloc[:7]
+
+    # After the first 7 rows, remove any row with a null value in any of the 3 columns
+    filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
+
+    # Concatenate the first 7 rows with the filtered data
+    final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
+
+    # Check if there are at least 14 rows of data after the first 7 rows
+    if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(retrain_check_data_actuals, retrain_check_data_forecasts):
+        retraining_data = fetch_actuals_from_db_for_retraining()
+        retrain_model(retraining_data)
+
+def get_and_upload_forecasts(extracted_date):
+    actuals_df = fetch_actuals_from_db(extracted_date)
+    forecasts_df = fetch_forecasts_from_db(extracted_date)
+
+    combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
+    two_day_forecasts = get_forecasts(combined_df)
+    # Take the df and upload those forecasts to db
+    db_manager.upload_model_forecasts(two_day_forecasts)
+    return two_day_forecasts
 
 @app.route('/')
 def index():
@@ -124,109 +220,28 @@ def index():
 
 @app.route('/api/upload_files', methods=['POST'])
 def data_upload_endpoint():
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        return jsonify({"error": "No file part"})
     
-    file = request.files['file']
+    file = get_uploaded_file()
 
-    if file.filename == '':
-        return jsonify({"error": "No selected file"})
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        file_ext = filename.rsplit('.', 1)[1].lower()
+    if not file or not allowed_file(file.filename):
+        return jsonify({"error": "Invalid file or file type"})
 
-        # Extract date from the filename
-        extracted_date = extract_date_from_filename(filename)
+    filename = secure_filename(file.filename)
+    filepath = save_file(file, filename)
 
-        if file_ext == 'zip':
-            with zipfile.ZipFile(filepath, 'r') as zip_ref:
-                zip_ref.extractall(app.config['UPLOAD_FOLDER'])
+    # Extract date from the filename
+    extracted_date = extract_date_from_filename(filename)
 
-                actuals_filename = None
-                forecasts_filename = None
+    process_zip_file(filepath, filename, extracted_date)
 
-                for name in zip_ref.namelist():
-                    if "Actuals_" in name:
-                        actuals_filename = name
-                    elif "Forecasts_" in name:
-                        forecasts_filename = name
-
-                if not (actuals_filename and forecasts_filename):
-                    return jsonify({"error": "ZIP file doesn't contain the required files."})
-
-                actuals_path = os.path.join(app.config['UPLOAD_FOLDER'], actuals_filename)
-                forecasts_path = os.path.join(app.config['UPLOAD_FOLDER'], forecasts_filename)
-
-                actuals = pd.read_csv(actuals_path)
-                forecasts = pd.read_csv(forecasts_path)
-
-                print(validate_actuals(actuals, extracted_date))
-                print(validate_forecasts(forecasts, extracted_date))
-
-                # Actuals file - Upload the latest actuals to db
-                db_manager = PostgreSQLUploader()
-                try:
-                    db_manager.upload_raw_actuals_csv(actuals_path)
-                except psycopg2.errors.UniqueViolation:
-                    print("A row with a duplicate primary key was found and skipped.")
-                except Exception as e:
-                    print(f"An unexpected error occurred: {e}")
-
-                try:
-                    db_manager.upload_raw_forecasts_csv(forecasts_path)
-                except psycopg2.errors.UniqueViolation:
-                    print("A row with a duplicate primary key was found and skipped.")
-                except Exception as e:
-                    print(f"An unexpected error occurred: {e}")
-
-                start_datetime_actuals = (pd.to_datetime(extracted_date) - pd.Timedelta(days=35)).replace(hour=8, minute=0, second=0)
-                end_datetime_actuals = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
-
-                start_datetime_forecasts = (pd.to_datetime(extracted_date) - pd.Timedelta(days=28)).replace(hour=8, minute=0, second=0)
-                end_datetime_forecasts = pd.to_datetime(extracted_date).replace(hour=7, minute=0, second=0)
-
-                retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
-                retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
-                retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
-
-                # Join the two DataFrames on the 'time' column
-                merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
-
-                # Order by 'time' in ascending order
-                merged_data = merged_data.sort_values(by='time')
-
-                # Always keep the first 7 rows
-                first_seven_rows = merged_data.iloc[:7]
-
-                # After the first 7 rows, remove any row with a null value in any of the 3 columns
-                filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
-
-                # Concatenate the first 7 rows with the filtered data
-                final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
-
-                # Check if there are at least 14 rows of data after the first 7 rows
-                if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(final_retrain_data):
-                    retraining_data = fetch_actuals_from_db_for_retraining()
-                    retrain_model(retraining_data)
-                    
-                # Fetch last weeks worth of data - To feed into the forecast function we need to go and get the last weeks worth of data (Joshs model expects 1 week lag variables and 2 day lag variables)
-                # Last week + 2 day forecasted variables (load will be null)
-                actuals_df = fetch_actuals_from_db(extracted_date)
-                forecasts_df = fetch_forecasts_from_db(extracted_date)
-
-                combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
-                two_day_forecasts = get_forecasts(combined_df)
-                two_day_forecasts.to_csv("fopre.csv")
-                # Take the df and upload those forecasts to db
-                db_manager.upload_model_forecasts(two_day_forecasts)
-
-                return jsonify({
-                    "message": "Data processed successfully",
-                    "data": two_day_forecasts.to_dict(orient='records')
-                })
+    # retrain_framework(extracted_date)
+    
+    two_day_forecasts = get_and_upload_forecasts(extracted_date)
+    
+    return jsonify({
+        "message": "Data processed successfully",
+        "data": two_day_forecasts.to_dict(orient='records')
+    })
 
 
 @app.route('/api/get_historical_actuals_and_forecasts', methods=['POST'])
@@ -290,20 +305,19 @@ def get_insights():
     # Return the insights as a JSON object
     return jsonify(insights)
 
-
-def test(extracted_date):
-    db_manager = PostgreSQLUploader()
-    actuals_df = fetch_actuals_from_db(extracted_date)
-    forecasts_df = fetch_forecasts_from_db(extracted_date)
+@app.route('/chatbot', methods=['POST'])
+def chatbot_endpoint():
+    data = request.get_json()  # Assume the message is being sent as a JSON payload
     
-    print("hey")
-    combined_df = pd.concat([actuals_df, forecasts_df], ignore_index=True)
-    combined_df.to_csv("tester.csv")
-    two_day_forecasts = get_forecasts(combined_df)
+    if not data or 'message' not in data:
+        return jsonify({"error": "Missing 'message' in request"}), 400  # Bad Request
 
-    # Take the df and upload those forecasts to db
-    db_manager.upload_model_forecasts(two_day_forecasts)
-
+    user_message = data['message']
+    chatbot_instance = Chatbot()
+    chatbot_response = chatbot_instance.run_chatbot(user_message)
+    print(chatbot_response)
+    
+    return jsonify({"response": chatbot_response})
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -13,7 +13,79 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 
     <style>
-        #dataInsightsSpace {
+    
+    #chatbox {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #messages {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    #user-input {
+        width: calc(100% - 60px);
+        padding: 10px;
+        border: none;
+        border-radius: 0;
+        outline: none;
+    }
+
+    button {
+        width: 50px;
+        border: none;
+        background-color: #0092E4;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    #chat-header {
+        background-color: #0092E4;
+        padding: 10px;
+        cursor: pointer;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    #chat-header button {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    #chat-content {
+        border: 1px solid #ccc;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 10px;
+    }
+
+    .user-message, .server-message {
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+
+    .user-message {
+        background-color: #e0f7fa;
+    }
+
+    .server-message {
+        background-color: #e0e0e0;
+    }
+
+    #dataInsightsSpace {
         display: grid;
         grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
         grid-gap: 20px; /* Defines the space between grid items */
@@ -21,7 +93,7 @@
         align-items: center; /* Vertically aligns items to the center of their grid area */
         padding: 20px;
         border: 15px solid #f8f8f8;
-    }
+        }
 
     .date-range {
         font-size: 0.7em; /* Adjust this value as needed to get the desired size */
@@ -826,7 +898,7 @@
             <div class="insight-box">
                 <h2>Maximum Demand</h2>
                 <div class="values">
-                    <span id="yesterday_max">Loading..</span> / <strong id="today_max">Loading..</strong> / <span id="tomorrow_max">Loading...</span>
+                    <span id="yesterday_max"></span> / <strong id="today_max"></strong> / <span id="tomorrow_max">.</span>
                 </div>
             </div>
         
@@ -834,7 +906,7 @@
             <div class="insight-box">
                 <h2>Minimum Demand</h2>
                 <div class="values">
-                    <span id="yesterday_min">Loading..</span> / <strong id="today_min">Loading..</strong> / <span id="tomorrow_min">Loading...</span>
+                    <span id="yesterday_min"></span> / <strong id="today_min"></strong> / <span id="tomorrow_min"></span>
                 </div>
             </div>
         
@@ -842,7 +914,7 @@
             <div class="insight-box">
                 <h2>Average Demand</h2>
                 <div class="values">
-                    <span id="yesterday_avg">Loading..</span> / <strong id="today_avg">Loading..</strong> / <span id="tomorrow_avg">Loading...</span>
+                    <span id="yesterday_avg"></span> / <strong id="today_avg"></strong> / <span id="tomorrow_avg"></span>
                 </div>
             </div>
         
@@ -850,7 +922,7 @@
             <div class="insight-box">
                 <h2>Weekly Average</h2>
                 <div class="values">
-                    <strong id="weekly_avg">Loading...</strong>
+                    <strong id="weekly_avg"></strong>
                 </div>
             </div>
             
@@ -858,7 +930,7 @@
             <div class="insight-box">
                 <h2>Monthly Average</h2>
                 <div class="values">
-                    <strong id="monthly_avg">Loading...</strong>
+                    <strong id="monthly_avg"></strong>
                 </div>
             </div>
             
@@ -866,7 +938,7 @@
             <div class="insight-box">
                 <h2>Yearly Average</h2>
                 <div class="values">
-                    <strong id="yearly_avg">Loading...</strong>
+                    <strong id="yearly_avg"></strong>
                 </div>
             </div>
             
@@ -876,6 +948,17 @@
         <br />
         <br />
         <br />
+    </div>
+
+    <div id="chatbox">
+        <div id="chat-header">
+            <button onclick="toggleChat()" aria-label="Toggle Chat">↕</button>
+        </div>
+        <div id="chat-content" style="display: none;">  <!-- Initially hidden -->
+            <div id="messages"></div>
+            <input type="text" id="user-input" placeholder="Type a message..." />
+            <button onclick="sendMessage()" aria-label="Send Message">Send</button>
+        </div>
     </div>
 
     <script>
@@ -1177,6 +1260,52 @@ async function fetchDataInsights(filename) {
         console.error('Fetch error:', error);
         alert("There was a problem fetching the data insights. Please try again.");
     }
+}
+
+function toggleChat() {
+    const chatContent = document.getElementById('chat-content');
+    if (chatContent.style.display === 'none') {
+        chatContent.style.display = 'block';
+    } else {
+        chatContent.style.display = 'none';
+    }
+}
+
+
+async function sendMessage() {
+    const userInput = document.getElementById('user-input').value;
+    if (userInput.trim() === '') return;  // Don't send empty messages
+    
+    const messageContainer = document.getElementById('messages');
+    
+    // Display user message
+    messageContainer.innerHTML += `<div class="user-message">${userInput}</div>`;
+    
+    // Send user message to server
+    try {
+        const response = await fetch('/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: userInput })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+    const data = await response.json();
+        
+        // Display server response
+        messageContainer.innerHTML += `<div class="server-message">${data.response}</div>`;
+    } catch (error) {
+        console.error('Error:', error);
+        messageContainer.innerHTML += `<div class="server-message">Error: ${error.message}</div>`;
+    }
+    
+    document.getElementById('user-input').value = '';  // Clear user input
+    messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
 

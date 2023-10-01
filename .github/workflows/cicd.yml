@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - ryanh-docker
+      - db_upload
 
 jobs:
   build_and_push:
