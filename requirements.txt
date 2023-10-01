@@ -49,3 +49,4 @@ Flask
 xlrd==1.2.0
 utils==1.0.1
 matplotlib
+langchain==0.0.300

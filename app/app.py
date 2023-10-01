@@ -11,6 +11,7 @@ from scripts.db_functions import PostgreSQLUploader, fetch_actuals_from_db, fetc
 import numpy as np
 from pytz import timezone
 from scripts.models import retraining_required, retrain_model
+from chatbot.chatbot import Chatbot
 
 
 app = Flask(__name__)
@@ -24,6 +25,9 @@ UPLOAD_FOLDER = 'upload_data/'  # replace with your desired upload folder
 ALLOWED_EXTENSIONS = {'zip'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+db_manager = PostgreSQLUploader()
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -127,8 +131,6 @@ def save_file(file, filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(filepath)
     return filepath
-
-db_manager = PostgreSQLUploader()
 
 def process_zip_file(filepath, filename, extracted_date):
     if filename.endswith('.zip'):
@@ -302,6 +304,20 @@ def get_insights():
 
     # Return the insights as a JSON object
     return jsonify(insights)
+
+@app.route('/chatbot', methods=['POST'])
+def chatbot_endpoint():
+    data = request.get_json()  # Assume the message is being sent as a JSON payload
+    
+    if not data or 'message' not in data:
+        return jsonify({"error": "Missing 'message' in request"}), 400  # Bad Request
+
+    user_message = data['message']
+    chatbot_instance = Chatbot()
+    chatbot_response = chatbot_instance.run_chatbot(user_message)
+    print(chatbot_response)
+    
+    return jsonify({"response": chatbot_response})
 
 if __name__ == "__main__":
     app.run(debug=True)
