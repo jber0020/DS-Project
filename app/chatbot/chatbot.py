@@ -14,7 +14,7 @@ class Chatbot:
         toolkit = SQLDatabaseToolkit(db=db, llm=OpenAI(temperature=0))
 
         self.agent_executor = create_sql_agent(
-            llm=OpenAI(temperature=0.8),
+            llm=ChatOpenAI(temperature=0.5, model_name="gpt-4"),
             toolkit=toolkit,
             verbose=True,
             agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
