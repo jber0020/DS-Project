@@ -1037,6 +1037,7 @@ async function uploadFile() {
             });
 
             if (!response.ok) {
+                console.error('Error:', response.status, response.statusText);
                 throw new Error('Network response was not ok');
             }
 
@@ -1061,7 +1062,7 @@ async function uploadFile() {
             await fetchDataInsights(file.name);
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error:', error.message, '\n', error.stack);
             alert('An error occurred while uploading the file.');
         }
     } else {
