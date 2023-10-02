@@ -757,13 +757,15 @@
         }
 
         .des-content {
-            position: absolute;
+            position: relative;
             width: 100%;
             top: 80px;
             transition: 1s;
-            background-color: rgba(0,0,0,0.85);
+            background-color: rgba(255,255,255,0.85);
+            color: black;
             border-radius: 10px;
             padding: 15px;
+            margin-bottom: 150px;
         }
         
     </style>
@@ -816,10 +818,26 @@
         </div>
         <div id="backgroundSection">
             <div id="des-imageSpace">
-                <div class="des-content">
-                    The main goal of this System is design and develop an electricity-demanding forecasting
-                    application that enables users to make informed decisions and create data driven strategies to
-                    reduce operating costs by refining resource planning and optimisation.
+                <div class="des-content" style="color:black; text-align: center;">
+                    <div style="font-size: larger; color: black; font-weight: 900;">
+                        Welcome to Forecaster Fox! 
+                        <br>
+                        Your webapp for generating electricity demand forecasts and insights. 
+                    </div>
+                    <br>
+                    <br>
+                    To get started:
+                    <ol style="text-align: left;">
+                        <li>
+                            Upload a zip file containing the load actuals for the previous day, and the weather forecasts for the upcoming day.
+                        </li>
+                        <li>
+                            Explore historical data by selecting the relevant date range.
+                        </li>
+                        <li>
+                            Navigate to the bottom of the page to discover insights, or ask FoxBot for more tailored insights.
+                        </li>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -828,7 +846,7 @@
     <!-- Forecasts/Historical Section -->
 <div id="content" style="background-color: #fff; padding-top: 30px; padding-bottom: 30px;">
     <div class="center" style="display: flex; align-items: center; justify-content: center;">
-        <span>Forecasts</span>
+        <span id="ForecastSection">Forecasts</span>
     </div>
 
     <div id="imageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
