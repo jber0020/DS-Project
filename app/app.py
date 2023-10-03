@@ -182,25 +182,32 @@ def retrain_framework(extracted_date):
 
     retrain_check_data_actuals = fetch_actuals_from_db_for_insights(start_datetime_actuals, end_datetime_actuals)
     retrain_check_data_forecasts = fetch_forecasts_from_db_for_insights(start_datetime_forecasts, end_datetime_forecasts)
-    retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecasts'})
+    retrain_check_data_forecasts = retrain_check_data_forecasts.rename(columns={'forecast_2': 'forecast'})
 
+    # Convert 'time' column to datetime
+    retrain_check_data_actuals['time'] = pd.to_datetime(retrain_check_data_actuals['time'])
+
+    # Merge DataFrame with itself on the 'time' column offset by 7 days to get the lagged load
+    merged_actual_df = retrain_check_data_actuals.merge(retrain_check_data_actuals, left_on='time', right_on=retrain_check_data_actuals['time'] + pd.Timedelta(days=7), suffixes=('', '_lag'))
+    
+    # Drop rows where lagged_load_kw is NaN
+    merged_actual_df.dropna(subset=['load_kw_lag'], inplace=True)
+
+    # Rename columns to more intuitive names
+    final_df = merged_actual_df[['time', 'load_kw', 'load_kw_lag']].rename(columns={'load_kw_lag': 'lagged_load_kw'})
+    
     # Join the two DataFrames on the 'time' column
-    merged_data = pd.merge(retrain_check_data_actuals, retrain_check_data_forecasts, on='time', how='inner')
+    merged_data = pd.merge(final_df, retrain_check_data_forecasts, on='time', how='inner')
 
     # Order by 'time' in ascending order
     merged_data = merged_data.sort_values(by='time')
 
-    # Always keep the first 7 rows
-    first_seven_rows = merged_data.iloc[:7]
-
-    # After the first 7 rows, remove any row with a null value in any of the 3 columns
-    filtered_data_after_seven = merged_data.iloc[7:].dropna(subset=['time', 'load_kw', 'forecasts'])
-
-    # Concatenate the first 7 rows with the filtered data
-    final_retrain_data = pd.concat([first_seven_rows, filtered_data_after_seven])
+    final_retrain_data = merged_data.dropna(subset=['time', 'load_kw', 'lagged_load_kw', 'forecast'])
 
     # Check if there are at least 14 rows of data after the first 7 rows
-    if final_retrain_data.shape[0] - 7 >= 14 and retraining_required(retrain_check_data_actuals, retrain_check_data_forecasts):
+    print(final_retrain_data.shape[0])
+    if final_retrain_data.shape[0] >= (14 * 24) and retraining_required(final_retrain_data):
+        print("RETRAINING REQUIRED!")
         retraining_data = fetch_actuals_from_db_for_retraining()
         retrain_model(retraining_data)
 
@@ -233,9 +240,9 @@ def data_upload_endpoint():
     extracted_date = extract_date_from_filename(filename)
 
     process_zip_file(filepath, filename, extracted_date)
-
-    # retrain_framework(extracted_date)
-    
+    print("hello")
+    retrain_framework(extracted_date)
+    print("hello")
     two_day_forecasts = get_and_upload_forecasts(extracted_date)
     
     return jsonify({
@@ -281,7 +288,6 @@ def data_historical_upload_endpoint():
 def get_insights():
     filename = request.args.get('filename')
     filename = secure_filename(filename)
-    print(filename)
     
     if not filename:
         return jsonify({"error": "Filename not provided."}), 400
@@ -298,8 +304,7 @@ def get_insights():
 
     forecasts = fetch_forecasts_from_db_for_insights(current_date, two_days_later)
     historical_df = fetch_actuals_from_db_for_insights(year_ago, two_days_later)
-    print("df", forecasts)
-    print("df_his", historical_df)
+
     insights = get_data_insights(forecasts, historical_df, current_date)
 
     # Return the insights as a JSON object

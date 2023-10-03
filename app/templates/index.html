@@ -1070,14 +1070,20 @@ async function uploadFile() {
     }
 }
 
+let myChart = null;
 
 function renderChart(data) {
     const ctx = document.getElementById('forecastChart').getContext('2d');
+
+    // Destroy the previous chart instance if it exists
+    if (myChart) {
+        myChart.destroy();
+    }
     
     const labels = data.map(d => moment(d.date, 'ddd, DD MMM YYYY HH:mm:ss GMT').toDate());
     const forecastValues = data.map(d => d.forecast);
     
-    const chart = new Chart(ctx, {
+    myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1134,12 +1140,10 @@ function renderChart(data) {
         }
     });
     document.querySelector("#imageSpace .pyramid-loader").style.display = "none";
-
 }
 
         // Attach the function to input file change event
         document.getElementById('file').addEventListener('change', uploadFile);
-
 
 function fetchInsightsData() {
     const startDate = document.getElementById('startDate').value;
