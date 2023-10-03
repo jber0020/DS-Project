@@ -52,6 +52,6 @@ matplotlib
 langchain==0.0.300
 xgboost
 openai
-azure-core==1.29.4
-azure-storage-blob==12.18.2
+azure-core==1.0.0
+azure-storage-blob==12.0.0
 isodate==0.6.1
