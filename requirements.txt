@@ -55,4 +55,3 @@ openai
 azure-core==1.29.4
 azure-storage-blob==12.18.2
 isodate==0.6.1
-typing-extensions==4.8.0
