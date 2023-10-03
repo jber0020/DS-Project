@@ -246,16 +246,15 @@ def get_forecasts(data):
     return joint
 
 
-def retraining_required(actuals, forecasts) -> bool:
+def retraining_required(data) -> bool:
     """
-    Input last 3 weeks of actuals, 2 weeks of forecasts.
-    This function will compare the performance of the 1
-    week naive model against our model, over the previous
-    2 weeks.
+    time
+    load_kw
+    lagged_load_kw
+    forecast
     """
-    y = actuals['load_kw']
-    naive_mse = naive(y, 24*7*2)[0]
-    model_mse = mean_squared_error(y.tail(24*7*2), forecasts['forecasts'])
+    naive_mse = mean_squared_error(data['load_kw'], data['lagged_load_kw'])
+    model_mse = mean_squared_error(data['load_kw'], data['forecast'])
     if model_mse > naive_mse:
         return True
     else:
@@ -294,17 +293,6 @@ def retrain_model(data) -> None:
     XGBoost.train_model(X2_train, y_train)
     XGBoost.save_model('xgb2', 'scripts/models')
 
-def get_insights(forecasts, actuals):
-    """
-
-    Possible insights:
-    - Forecasted Peak Demand
-    - Forecasted Average Demand
-    - Forecasted Minimum
-    - Model Performance (MAPE)
-
-    """
-    pass
 
 if __name__=='__main__':
     data = pd.read_csv(get_root('data/elec_p4_dataset/Train/merged_actuals.csv'))
