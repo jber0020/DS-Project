@@ -15,6 +15,7 @@ from chatbot.chatbot import Chatbot
 
 
 app = Flask(__name__)
+# app.config.from_object('config')
 
 host='ds4db.postgres.database.azure.com',
 dbname='elec_db',
@@ -231,7 +232,7 @@ def data_upload_endpoint():
     file = get_uploaded_file()
 
     if not file or not allowed_file(file.filename):
-        return jsonify({"error": "Invalid file or file type"})
+        return jsonify({"error": "Ensure you upload a zip file with the naming convention Data_Mon DAY 8AM.zip (eg Data_Feb 15 8AM.zip)"})
 
     filename = secure_filename(file.filename)
     filepath = save_file(file, filename)
@@ -326,4 +327,3 @@ def chatbot_endpoint():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    # print(test("2021-02-08"))
