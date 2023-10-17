@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Demand Forecasting</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <link href='https://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet'>
+
+    <style>
+    
+    #chatbox {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 300px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #messages {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    #user-input {
+        width: calc(100% - 60px);
+        padding: 10px;
+        border: none;
+        border-radius: 0;
+        outline: none;
+    }
+
+    button {
+        width: 50px;
+        border: none;
+        background-color: #0092E4;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    #chat-header {
+        background-color: #0092E4;
+        padding: 10px;
+        cursor: pointer;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    #chat-header button {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    #chat-content {
+        border: 1px solid #ccc;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 10px;
+    }
+
+    .user-message, .server-message {
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+
+    .user-message {
+        background-color: #e0f7fa;
+    }
+
+    .server-message {
+        background-color: #e0e0e0;
+    }
+
+    #dataInsightsSpace {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+        grid-gap: 20px; /* Defines the space between grid items */
+        justify-items: center; /* Horizontally aligns items to the center of their grid area */
+        align-items: center; /* Vertically aligns items to the center of their grid area */
+        padding: 20px;
+        border: 15px solid #f8f8f8;
+        }
+
+    .date-range {
+        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
+        vertical-align: middle;
+        color: darkblue;
+    }
+
+    .insight-box {
+        /* Define a fixed width and height for each box, if desired */
+        margin: 5px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .insight-box h2 {
+        color: black;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .insight-box .days span,
+    .insight-box .values span {
+        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
+    }
+
+    .insight-box .days strong,
+    .insight-box .values strong {
+        font-size: 1.5em;  /* "Today" remains the same size as before */
+        font-weight: bold;
+    }
+        
+        .header-background {
+            background-image: url(https://github.com/jber0020/DS-Project/blob/chuan/project_template/app/templates/Melbourne_At_Night_from_Southbank_Bridge.jpg?raw=true);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 50px 0;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+
+    #dataInsightsSpace {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+        grid-gap: 20px; /* Defines the space between grid items */
+        justify-items: center; /* Horizontally aligns items to the center of their grid area */
+        align-items: center; /* Vertically aligns items to the center of their grid area */
+        padding: 20px;
+        border: 15px solid #f8f8f8;
+    }
+
+    .date-range {
+        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
+        vertical-align: middle;
+        color: black;
+    }
+
+    .insight-box {
+        /* Define a fixed width and height for each box, if desired */
+        margin: 5px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .insight-box h2 {
+        color: black;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .insight-box .days span,
+    .insight-box .values span {
+        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
+    }
+
+    .insight-box .days strong,
+    .insight-box .values strong {
+        font-size: 1.5em;  /* "Today" remains the same size as before */
+        font-weight: bold;
+    }
+
+    .blue-bold-text {
+            color: blue;
+            font-weight: bold;
+        }
+        /* git hub button */
+        .btn {
+            display: grid;
+            place-items: center;
+            background: #e3edf7;
+            padding: 0.9em;
+            border-radius: 10px;
+            box-shadow: 6px 6px 10px -1px rgba(0,0,0,0.15), -1px -1px 10px -1px rgba(255,255,255,0.7);
+            border: 1px solid rgba(0,0,0,0);
+            cursor: pointer;
+            transition: transform 0.5s;
+        }
+
+            .btn:hover {
+                box-shadow: inset 4px 4px 6px -1px rgba(0,0,0,0.2), inset -4px -4px 6px -1px rgba(255,255,255,0.7), -0.5px -0.5px 0px rgba(255,255,255,1), 0.5px 0.5px 0px rgba(0,0,0,0.15), 0px 12px 10px -10px rgba(0,0,0,0.05);
+                border: 1px solid rgba(0,0,0,0.1);
+                transform: translateY(0.5em);
+            }
+
+            .btn svg {
+                transition: transform 0.5s;
+            }
+
+            .btn:hover svg {
+                transform: scale(0.9) rotate(360deg);
+                fill: #333333;
+            }
+
+
+        /* git hub button */
+
+        /* 3D model */
+        .pyramid-loader {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: block;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg);
+        }
+
+        .wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .pyramid-loader .wrapper .side {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(to bottom right, #FFA500, #FF4500);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            transform-origin: center top;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .pyramid-loader .wrapper .side1 {
+            transform: rotateZ(-30deg) rotateY(90deg);
+            background: linear-gradient(to bottom right, #FF4500, #FFA500);
+        }
+
+        .pyramid-loader .wrapper .side2 {
+            transform: rotateZ(30deg) rotateY(90deg);
+            background: linear-gradient(to bottom right, #FFA500, #FF4500);
+        }
+
+        .pyramid-loader .wrapper .side3 {
+            transform: rotateX(30deg);
+            background: linear-gradient(to bottom right, #FFA500, #FF4500);
+        }
+
+        .pyramid-loader .wrapper .side4 {
+            transform: rotateX(-30deg);
+            background: linear-gradient(to bottom right, #FF4500, #FFA500);
+        }
+
+        .pyramid-loader .wrapper .shadow {
+            width: 60px;
+            height: 60px;
+            background: #FF8C00;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            transform: rotateX(90deg) translateZ(-40px);
+            filter: blur(12px);
+        }
+        /* 3D model */
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .top {
+            /* background: linear-gradient(to right, #1e3c72, #2a5298); */
+            font-family: 'Open Sans';
+            margin: 0;
+            padding: 0;
+            padding: 20px 120px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .left-box {
+            height: 500px;
+            width: 500px;
+            border-width: 2px;
+            padding: 10px;
+            border-style: solid;
+        }
+
+        .button-box {
+            height: 300px;
+            width: 300px;
+            border: 1px solid black;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .pLeft {
+            text-align: left;
+            margin-left: 85px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* 	position: absolute;
+            top: 100px; */
+            margin-top: 80px;
+            margin-left: 150px; /* 使用了pLeft类的左边距 */
+            max-width: calc(100% - 170px); /* 减去左边距和一些可能的右边距 */
+        }
+
+        upload-button {
+            height: 400px;
+            width: 400px;
+            border: 1px solid black;
+            padding: 5px;
+            align-items: center;
+            border-radius: 8px;
+        }
+
+        .lds-roller {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+            .lds-roller div {
+                animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+                transform-origin: 40px 40px;
+            }
+
+                .lds-roller div:after {
+                    content: " ";
+                    display: block;
+                    position: absolute;
+                    width: 7px;
+                    height: 7px;
+                    border-radius: 50%;
+                    background: black;
+                    margin: -4px 0 0 -4px;
+                }
+
+                .lds-roller div:nth-child(1) {
+                    animation-delay: -0.036s;
+                }
+
+                    .lds-roller div:nth-child(1):after {
+                        top: 63px;
+                        left: 63px;
+                    }
+
+                .lds-roller div:nth-child(2) {
+                    animation-delay: -0.072s;
+                }
+
+                    .lds-roller div:nth-child(2):after {
+                        top: 68px;
+                        left: 56px;
+                    }
+
+                .lds-roller div:nth-child(3) {
+                    animation-delay: -0.108s;
+                }
+
+                    .lds-roller div:nth-child(3):after {
+                        top: 71px;
+                        left: 48px;
+                    }
+
+                .lds-roller div:nth-child(4) {
+                    animation-delay: -0.144s;
+                }
+
+                    .lds-roller div:nth-child(4):after {
+                        top: 72px;
+                        left: 40px;
+                    }
+
+                .lds-roller div:nth-child(5) {
+                    animation-delay: -0.18s;
+                }
+
+                    .lds-roller div:nth-child(5):after {
+                        top: 71px;
+                        left: 32px;
+                    }
+
+                .lds-roller div:nth-child(6) {
+                    animation-delay: -0.216s;
+                }
+
+                    .lds-roller div:nth-child(6):after {
+                        top: 68px;
+                        left: 24px;
+                    }
+
+                .lds-roller div:nth-child(7) {
+                    animation-delay: -0.252s;
+                }
+
+                    .lds-roller div:nth-child(7):after {
+                        top: 63px;
+                        left: 17px;
+                    }
+
+                .lds-roller div:nth-child(8) {
+                    animation-delay: -0.288s;
+                }
+
+                    .lds-roller div:nth-child(8):after {
+                        top: 56px;
+                        left: 12px;
+                    }
+
+        @keyframes lds-roller {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .lds-hourglass {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+            .lds-hourglass:after {
+                content: " ";
+                display: block;
+                border-radius: 50%;
+                width: 0;
+                height: 0;
+                margin: 8px;
+                box-sizing: border-box;
+                border: 32px solid black;
+                border-color: gray transparent grey transparent;
+                animation: lds-hourglass 1.2s infinite;
+            }
+
+        @keyframes lds-hourglass {
+            0% {
+                transform: rotate(0);
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+
+            50% {
+                transform: rotate(900deg);
+                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+
+            100% {
+                transform: rotate(1800deg);
+            }
+        }
+        /* upload function */
+        .custum-file-upload {
+            height: 200px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: space-between;
+            gap: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #cacaca;
+            background-color: rgba(255, 255, 255, 1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0px 48px 35px -48px rgba(0,0,0,0.1);
+        }
+
+            .custum-file-upload .icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .custum-file-upload .icon svg {
+                    height: 80px;
+                    fill: rgba(75, 85, 99, 1);
+                }
+
+            .custum-file-upload .text {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .custum-file-upload .text span {
+                    font-weight: 400;
+                    color: rgba(75, 85, 99, 1);
+                }
+
+            .custum-file-upload input {
+                display: none;
+            }
+        /* upload function*/
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888888;
+            width: 30%; /* Could be more or less, depending on screen size */
+        }
+
+        /* Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+
+        #imageSpace {
+            width: calc(100% - 240px);
+            margin: 0 auto;
+            flex: 3;
+            /* border: 1px solid black; */
+            height: 500px;
+            /* margin-right: 50px;
+            margin-left: 60px; */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            /* background-color: rgba(255, 255, 255, 0.1); */
+            /* border-radius: 8px; */
+            background-color: white;
+            box-shadow: 0px 2px 10px 5px rgba(0,0,0,0.15), -1px -1px 10px -1px rgba(255,255,255,0.7);
+        }
+
+        .des-opacity {
+            opacity: 1 !important;
+        }
+
+            .des-opacity .des-content {
+                top: 60px;
+            }
+
+        #des-imageSpace {
+            flex: 3;
+            height: 200px;
+            margin-right: 300px;
+            margin-left: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white; /* Text color set to white */
+            padding: 10px 20px;
+            transition: opacity 1.5s;
+            opacity: 0;
+            position: relative;
+        }
+
+            #des-imageSpace div {
+                color: white;
+                font-weight: bold;
+                font-size: 23px; /* This increases the font size */
+            }
+
+
+        .center {
+            display: grid;
+            place-items: center; /* 垂直和水平居中 */
+            height: 100px;
+            font-size: 30px;
+            font-weight: 600;
+        }
+
+
+
+        body {
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans';
+        }
+
+        .upload-button {
+            display: inline-flex;
+            width: auto; /* Adjust the width as needed */
+            height: auto; /* Adjust the height as needed */
+            border: 1px solid #fff;
+            padding: 7px 15px;
+            align-items: center;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            align-items: center;
+            /* background-color: white; */
+        }
+
+
+
+
+        /* Forecasts/Historical Parts Switch */
+        .checkbox {
+            display: none;
+        }
+
+        .slider {
+            width: 60px;
+            height: 30px;
+            background-color: lightgray;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            border: 4px solid transparent;
+            transition: .3s;
+            box-shadow: 0 0 10px 0 rgb(0, 0, 0, 0.25) inset;
+            cursor: pointer;
+        }
+
+            .slider::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: 100%;
+                background-color: #fff;
+                transform: translateX(-30px);
+                border-radius: 20px;
+                transition: .3s;
+                box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
+            }
+
+        .checkbox:checked ~ .slider::before {
+            transform: translateX(30px);
+            box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
+        }
+
+        .checkbox:checked ~ .slider {
+            background-color: #2196F3;
+        }
+
+        .checkbox:active ~ .slider::before {
+            transform: translate(0);
+        }
+
+        .switch {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            right: 120px; /* 10px away from the right */
+        }
+
+        /* Forecasts/Historical Parts Switch */
+
+        .labelText {
+            margin: 0 10px; /* 调整左右边距 */
+            vertical-align: middle; /* 垂直居中与滑块 */
+        }
+
+        /* Forecasts/Historical Parts Switch */
+        /* Forecasts/Historical Parts Switch */
+
+        .topFixed {
+            background-color: transparent !important;
+        }
+
+            .topFixed span {
+                color: #fff !important;
+            }
+
+        .topMove {
+            z-index: 999;
+            position: fixed;
+            top: 0;
+            background-color: #00114fc7 !important;
+        }
+
+            .topMove span {
+                color: #fff !important;
+            }
+
+            .topMove .upload-button {
+                border-color: #fff !important;
+            }
+
+        #backgroundSection {
+            padding: 150px 0 100px;
+        }
+
+        .des-content {
+            position: relative;
+            width: 100%;
+            top: 80px;
+            transition: 1s;
+            background-color: rgba(255,255,255,0.85);
+            color: black;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 150px;
+        }
+        
+    </style>
+</head>
+
+<body>
+    <div class="header-background" style="margin-bottom: 20px;">
+        <div class="top" style="display: flex;">
+            <span class="text-white" style="font-size: 42px;font-weight: 700;"> Forecaster Fox </span>
+
+            
+            <div class="button-container" style="float: right;">
+                <!-- Trigger/Open The Modal -->
+            <div id="btnOpenModal" class="upload-button" style="margin-right:50px; margin-top: -70px;">
+                <img class="uploadIcon" src="https://raw.githubusercontent.com/jber0020/DS-Project/main/app/templates/upload.png" style="width: 18px;margin-right: 5px;">
+                <span>Upload</span>
+            </div>
+                <a href="https://github.com/jber0020/DS-Project" target="_blank" style="margin-top: -80px;">
+                    <button class="btn" style="height: 80px; width: 80px;">
+                        <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#0092E4" height="40" width="40">
+                            <path d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z"></path>
+                        </svg>
+                    </button>
+                </a>
+    
+            </div>
+        </div>
+        <br />
+
+        
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content" style="height: 200px;">
+                <span class="close">&times;</span>
+            
+                
+                <label class="custom-file-upload" for="file">
+                    <div class="icon">
+                        <!-- ... your SVG ... -->
+                    </div>
+                    <div class="text">
+                        <span>Click to upload data</span>
+                    </div>
+                    <input type="file" id="file"> <!-- We'll attach an event to this input -->
+                </label>
+            </div>
+
+        </div>
+        <div id="backgroundSection">
+            <div id="des-imageSpace">
+                <div class="des-content" style="color:black; text-align: center;">
+                    <div style="font-size: larger; color: black; font-weight: 900;">
+                        Welcome to Forecaster Fox! 
+                        <br>
+                        Your webapp for generating electricity demand forecasts and insights. 
+                    </div>
+                    <br>
+                    <br>
+                    To get started:
+                    <ol style="text-align: left;">
+                        <li>
+                            Upload a zip file containing the load actuals for the previous day, and the weather forecasts for the upcoming day.
+                        </li>
+                        <li>
+                            Explore historical data by selecting the relevant date range.
+                        </li>
+                        <li>
+                            Navigate to the bottom of the page to discover insights, or ask FoxBot for more tailored insights.
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forecasts/Historical Section -->
+<div id="content" style="background-color: #fff; padding-top: 30px; padding-bottom: 30px;">
+    <div class="center" style="display: flex; align-items: center; justify-content: center;">
+        <span id="ForecastSection">Forecasts</span>
+    </div>
+
+    <div id="imageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
+        <!-- Add a canvas here to render the chart -->
+        <canvas id="forecastChart"></canvas>
+        <div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Insights Section -->
+<div id="content" style="background-color: #fff; padding-top: 30px;">
+    <!-- Title Section -->
+    <div class="center" style="display: flex; align-items: center; justify-content: center;">
+        <span>History</span>
+    </div>
+
+    <!-- Date Selection Section -->
+    <div style="text-align:center; margin: 20px;">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate">
+
+        <label for="endDate" style="margin-left: 20px;">End Date:</label>
+        <input type="date" id="endDate">
+
+        <button onclick="fetchInsightsData()" style="margin-left: 20px;">GET DATA</button>
+    </div>
+
+    <!-- Image/Chart Space -->
+    <div id="insightImageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
+        <canvas id="insightChart"></canvas>
+        <div>
+            <span>
+                <div class="pyramid-loader">
+                    <div class="wrapper">
+                        <span class="side side1"></span>
+                        <span class="side side2"></span>
+                        <span class="side side3"></span>
+                        <span class="side side4"></span>
+                        <span class="shadow"></span>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+</div>
+        
+
+        <div class="center" style="background-color: white; padding: 5px; padding-top: 10px;">Insights <span class="date-range">(Yesterday / Today / Tomorrow)</span></div>
+        <div id="dataInsightsSpace" style="background-color: white;">
+            
+            <!-- Max Demand -->
+            <div class="insight-box">
+                <h2>Maximum Demand (kW)</h2>
+                <div class="values">
+                    <span id="yesterday_max"></span> / <strong id="today_max"></strong> / <span id="tomorrow_max">.</span>
+                </div>
+            </div>
+        
+            <!-- Min Demand -->
+            <div class="insight-box">
+                <h2>Minimum Demand (kW)</h2>
+                <div class="values">
+                    <span id="yesterday_min"></span> / <strong id="today_min"></strong> / <span id="tomorrow_min"></span>
+                </div>
+            </div>
+        
+            <!-- Average Demand -->
+            <div class="insight-box">
+                <h2>Average Demand (kW)</h2>
+                <div class="values">
+                    <span id="yesterday_avg"></span> / <strong id="today_avg"></strong> / <span id="tomorrow_avg"></span>
+                </div>
+            </div>
+        
+            <!-- Weekly Average -->
+            <div class="insight-box">
+                <h2>Weekly Average (kW)</h2>
+                <div class="values">
+                    <strong id="weekly_avg"></strong>
+                </div>
+            </div>
+            
+            <!-- Monthly Average -->
+            <div class="insight-box">
+                <h2>Monthly Average (kW)</h2>
+                <div class="values">
+                    <strong id="monthly_avg"></strong>
+                </div>
+            </div>
+            
+            <!-- Yearly Average -->
+            <div class="insight-box">
+                <h2>Yearly Average (kW)</h2>
+                <div class="values">
+                    <strong id="yearly_avg"></strong>
+                </div>
+            </div>
+            
+        </div>
+        
+        <br />
+        <br />
+        <br />
+        <br />
+    </div>
+
+    <div id="chatbox">
+        <div id="chat-header">
+            <button onclick="toggleChat()" aria-label="Toggle Chat" style="width:100%;">FoxBot</button>
+        </div>
+        <div id="chat-content" style="display: none;">  <!-- Initially hidden -->
+            <div id="messages"></div>
+            <input type="text" id="user-input" placeholder="Type a message..." />
+            <button onclick="sendMessage()" aria-label="Send Message">Send</button>
+        </div>
+    </div>
+
+    <script>
+
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("btnOpenModal");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks the button, open the modal
+        btn.onclick = function () {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        window.addEventListener("load", function () {
+            let des = document.querySelector('#des-imageSpace');
+            des.className = 'des-opacity';
+        });
+
+        window.addEventListener('scroll', function () {
+            let top = document.querySelector('.top');
+            let scrollTop = document.documentElement.scrollTop
+            let uploadIcon = document.querySelector('.uploadIcon');
+            if (scrollTop == 0) {
+                top.className = 'top topFixed';
+                uploadIcon.setAttribute('src', 'upload.png')
+            } else {
+                top.className = 'top topMove';
+                // uploadIcon.setAttribute('src','upload_black.png')
+            }
+        });
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+async function uploadFile() {
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+
+    if (file && ['csv', 'xlsx', 'xls', 'zip'].includes(file.name.split('.').pop().toLowerCase())) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            let response = await fetch('/api/upload_files', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                console.error('Error:', response.status, response.statusText);
+                throw new Error('Network response was not ok');
+            }
+
+            let data = await response.json();
+            
+            if(data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Reformat the data for the chart
+            const formattedData = data.data.map(row => {
+                return {
+                    forecast: row.forecasts,  // Extract 'forecasts' value
+                    date: row.time            // Extract 'time' value
+                };
+            });
+
+            renderChart(formattedData);
+
+            // Fetch the data insights once the chart data is fetched and rendered
+            await fetchDataInsights(file.name);
+
+        } catch (error) {
+            console.error('Error:', error.message, '\n', error.stack);
+            alert('An error occurred while uploading the file.');
+        }
+    } else {
+        alert('Invalid file type. Please upload a ZIP, CSV or Excel file.');
+    }
+}
+
+let myChart = null;
+
+function renderChart(data) {
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+
+    // Destroy the previous chart instance if it exists
+    if (myChart) {
+        myChart.destroy();
+    }
+    
+    const labels = data.map(d => moment(d.date, 'ddd, DD MMM YYYY HH:mm:ss GMT').toDate());
+    const forecastValues = data.map(d => d.forecast);
+    
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+            label: 'Forecast',
+            data: forecastValues,
+            borderColor: 'rgba(75, 192, 192, 1)',  // Cyan color
+            fill: false,
+            pointRadius: 5, // Increase the size of the points
+        }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'xy'
+                    },
+                    zoom: {
+                        enabled: true,
+                        mode: 'xy',
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        displayFormats: {
+                            hour: 'HH:mm'
+                        }
+                    }
+                },
+                y: {
+                    // beginAtZero: true,
+                }
+            }
+        }
+    });
+    document.querySelector("#imageSpace .pyramid-loader").style.display = "none";
+}
+
+        // Attach the function to input file change event
+        document.getElementById('file').addEventListener('change', uploadFile);
+
+function fetchInsightsData() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates.');
+        return;
+    }
+
+    fetch('/api/get_historical_actuals_and_forecasts', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            startDate: startDate,
+            endDate: endDate
+        })
+    })
+    .then(response => response.json())
+    .then(data => renderInsightChart(data))
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while fetching the data.');
+    });
+}
+
+let currentChart = null;
+
+function renderInsightChart(data) {
+    const ctx = document.getElementById('insightChart').getContext('2d');
+    
+    if (currentChart) {
+        currentChart.destroy();
+    }
+
+    const labels = data.map(d => moment(d.time, 'ddd, DD MMM YYYY HH:mm:ss [GMT]').toDate());
+    const actualValues = data.map(d => d.actual_load_kw);
+    const forecast1Values = data.map(d => d.forecast_forecast_1);
+    const forecast2Values = data.map(d => d.forecast_forecast_2);
+
+    // Determine min and max values for axes
+    const minDate = new Date(Math.min(...labels));
+    const maxDate = new Date(Math.max(...labels));
+
+    const allValues = [...actualValues, ...forecast1Values, ...forecast2Values];
+    const minYValue = Math.min(...allValues);
+    const maxYValue = Math.max(...allValues);
+    console.log(minDate, maxDate, minYValue, maxYValue);
+
+
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Actual Load',
+                    data: actualValues,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                },
+                {
+                    label: 'Forecast 1',
+                    data: forecast1Values,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                },
+                {
+                    label: 'Forecast 2',
+                    data: forecast2Values,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        displayFormats: {
+                            day: 'MMM DD, YYYY'
+                        },
+                        min: minDate,
+                        max: maxDate
+                    }
+                },
+                y: {
+                    // beginAtZero: true,
+                    ticks: {
+                        min: minYValue,
+                        max: maxYValue
+                    }
+                }
+            }
+        }
+
+    });
+
+    document.querySelector("#insightImageSpace .pyramid-loader").style.display = "none";
+}
+
+async function fetchDataInsights(filename) {
+    try {
+        let response = await fetch(`/api/data-insights?filename=${filename}`);
+
+        // If the response is not ok (e.g., status code is not in the 200-299 range), throw an error
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        let data = await response.json();
+
+        // Update the frontend with the received data:
+        document.getElementById("yesterday_max").innerText = data.yesterday_max;
+        document.getElementById("today_max").innerText = data.today_max;
+        document.getElementById("tomorrow_max").innerText = data.tomorrow_max;
+
+        document.getElementById("yesterday_min").innerText = data.yesterday_min;
+        document.getElementById("today_min").innerText = data.today_min;
+        document.getElementById("tomorrow_min").innerText = data.tomorrow_min;
+
+        document.getElementById("yesterday_avg").innerText = data.yesterday_avg;
+        document.getElementById("today_avg").innerText = data.today_avg;
+        document.getElementById("tomorrow_avg").innerText = data.tomorrow_avg;
+
+        document.getElementById("weekly_avg").innerText = data.weekly_avg;
+        document.getElementById("monthly_avg").innerText = data.monthly_avg;
+        document.getElementById("yearly_avg").innerText = data.yearly_avg;
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+        alert("There was a problem fetching the data insights. Please try again.");
+    }
+}
+
+function toggleChat() {
+    const chatContent = document.getElementById('chat-content');
+    if (chatContent.style.display === 'none') {
+        chatContent.style.display = 'block';
+    } else {
+        chatContent.style.display = 'none';
+    }
+}
+
+
+async function sendMessage() {
+    const userInput = document.getElementById('user-input').value;
+    if (userInput.trim() === '') return;  // Don't send empty messages
+    
+    const messageContainer = document.getElementById('messages');
+    
+    // Display user message
+    messageContainer.innerHTML += `<div class="user-message">${userInput}</div>`;
+    
+    // Send user message to server
+    try {
+        const response = await fetch('/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: userInput })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+
+    const data = await response.json();
+        
+        // Display server response
+        messageContainer.innerHTML += `<div class="server-message">${data.response}</div>`;
+    } catch (error) {
+        console.error('Error:', error);
+        messageContainer.innerHTML += `<div class="server-message">Error: ${error.message}</div>`;
+    }
+    
+    document.getElementById('user-input').value = '';  // Clear user input
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+
+</script>
+</body>
+</html>

@@ -8,133 +8,129 @@
     <title>Electricity Demand Forecasting</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
     <link href='https://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet'>
 
     <style>
-    
-    #chatbox {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 300px;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
 
-    #messages {
-        max-height: 200px;
-        overflow-y: auto;
-        padding: 10px;
-        border-bottom: 1px solid #ccc;
-    }
-
-    #user-input {
-        width: calc(100% - 60px);
-        padding: 10px;
-        border: none;
-        border-radius: 0;
-        outline: none;
-    }
-
-    button {
-        width: 50px;
-        border: none;
-        background-color: #0092E4;
-        color: #fff;
-        cursor: pointer;
-    }
-
-    #chat-header {
-        background-color: #0092E4;
-        padding: 10px;
-        cursor: pointer;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-    }
-
-    #chat-header button {
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 18px;
-        cursor: pointer;
-    }
-
-    #chat-content {
-        border: 1px solid #ccc;
-        border-bottom-left-radius: 8px;
-        border-bottom-right-radius: 8px;
-        padding: 10px;
-    }
-
-    .user-message, .server-message {
-        padding: 5px;
-        margin: 5px 0;
-        border-radius: 5px;
-    }
-
-    .user-message {
-        background-color: #e0f7fa;
-    }
-
-    .server-message {
-        background-color: #e0e0e0;
-    }
-
-    #dataInsightsSpace {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
-        grid-gap: 20px; /* Defines the space between grid items */
-        justify-items: center; /* Horizontally aligns items to the center of their grid area */
-        align-items: center; /* Vertically aligns items to the center of their grid area */
-        padding: 20px;
-        border: 15px solid #f8f8f8;
+        #chatbox {
+            position: fixed;
+            bottom: 0px;
+            right: 20px;
+            width: 300px;
+            background-color: #fff;
+            /* border: 1px solid #ccc; */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-    .date-range {
-        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
-        vertical-align: middle;
-        color: darkblue;
-    }
+        #messages {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
 
-    .insight-box {
-        /* Define a fixed width and height for each box, if desired */
-        margin: 5px;
-        padding: 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        text-align: center;
-    }
+        #user-input {
+            width: calc(100% - 60px);
+            padding: 10px;
+            border: none;
+            border-radius: 0;
+            outline: none;
+        }
 
-    .center {
-        text-align: center;
-    }
+        button {
+            width: 50px;
+            border: none;
+            background-color: #0092E4;
+            color: #fff;
+            cursor: pointer;
+        }
 
-    .insight-box h2 {
-        color: black;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
+        #chat-header {
+            background-color: #0092E4;
+            padding: 10px;
+            cursor: pointer;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
 
-    .insight-box .days span,
-    .insight-box .values span {
-        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
-    }
+            #chat-header button {
+                background: none;
+                border: none;
+                color: #fff;
+                font-size: 18px;
+                cursor: pointer;
+            }
 
-    .insight-box .days strong,
-    .insight-box .values strong {
-        font-size: 1.5em;  /* "Today" remains the same size as before */
-        font-weight: bold;
-    }
-        
+        #chat-content {
+            border: 1px solid #ccc;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding: 10px;
+        }
+
+        .user-message, .server-message {
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .user-message {
+            background-color: #e0f7fa;
+        }
+
+        .server-message {
+            background-color: #e0e0e0;
+        }
+
+        #dataInsightsSpace {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
+            grid-gap: 20px; /* Defines the space between grid items */
+            justify-items: center; /* Horizontally aligns items to the center of their grid area */
+            align-items: center; /* Vertically aligns items to the center of their grid area */
+            border: 15px solid #f8f8f8;
+        }
+
+        .date-range {
+            font-size: 0.4em; /* Adjust this value as needed to get the desired size */
+            vertical-align: middle;
+            color: darkblue;
+        }
+
+        .insight-box {
+            /* Define a fixed width and height for each box, if desired */
+            padding: 35px;
+			text-align: center;
+			width: 300px;
+			display: flex;
+			flex-direction: column;
+			height: 85px;
+			justify-content: space-between;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .insight-box .days span,
+        .insight-box .values span {
+            font-size: 1em; /* Making "Yesterday" and "Tomorrow" values smaller */
+        }
+
+        .insight-box .days strong,
+        .insight-box .values strong {
+            font-size: 1.5em; /* "Today" remains the same size as before */
+            font-weight: bold;
+        }
+
         .header-background {
             background-image: url(https://github.com/jber0020/DS-Project/blob/chuan/project_template/app/templates/Melbourne_At_Night_from_Southbank_Bridge.jpg?raw=true);
-            background-size: cover;
+            /* background-image: url(Melbourne_At_Night_from_Southbank_Bridge.jpg); */
+			background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             padding: 50px 0;
@@ -142,54 +138,34 @@
             padding-top: 0;
         }
 
+        .date-range {
+            font-size: 0.4em; /* Adjust this value as needed to get the desired size */
+            vertical-align: middle;
+            color: black;
+        }
 
-    #dataInsightsSpace {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Creates 3 evenly spaced columns */
-        grid-gap: 20px; /* Defines the space between grid items */
-        justify-items: center; /* Horizontally aligns items to the center of their grid area */
-        align-items: center; /* Vertically aligns items to the center of their grid area */
-        padding: 20px;
-        border: 15px solid #f8f8f8;
-    }
+        .center {
+            text-align: center;
+        }
 
-    .date-range {
-        font-size: 0.7em; /* Adjust this value as needed to get the desired size */
-        vertical-align: middle;
-        color: black;
-    }
+        .insight-box h2 {
+            color: #fff;
+            font-weight: bold;
+            margin: 0px;
+        }
 
-    .insight-box {
-        /* Define a fixed width and height for each box, if desired */
-        margin: 5px;
-        padding: 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        text-align: center;
-    }
+        .insight-box .days span,
+        .insight-box .values span {
+            font-size: 1em; /* Making "Yesterday" and "Tomorrow" values smaller */
+        }
 
-    .center {
-        text-align: center;
-    }
+        .insight-box .days strong,
+        .insight-box .values strong {
+            font-size: 1.5em; /* "Today" remains the same size as before */
+            font-weight: bold;
+        }
 
-    .insight-box h2 {
-        color: black;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .insight-box .days span,
-    .insight-box .values span {
-        font-size: 1em;  /* Making "Yesterday" and "Tomorrow" values smaller */
-    }
-
-    .insight-box .days strong,
-    .insight-box .values strong {
-        font-size: 1.5em;  /* "Today" remains the same size as before */
-        font-weight: bold;
-    }
-
-    .blue-bold-text {
+        .blue-bold-text {
             color: blue;
             font-weight: bold;
         }
@@ -318,6 +294,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+			position: fixed;
+			z-index: 99;
         }
 
         .left-box {
@@ -349,7 +327,6 @@
             align-items: center;
             /* 	position: absolute;
             top: 100px; */
-            margin-top: 80px;
             margin-left: 150px; /* 使用了pLeft类的左边距 */
             max-width: calc(100% - 170px); /* 减去左边距和一些可能的右边距 */
         }
@@ -565,15 +542,18 @@
         .modal-content {
             background-color: #fefefe;
             margin: 15% auto; /* 15% from the top and centered */
-            padding: 20px;
             border: 1px solid #888888;
             width: 30%; /* Could be more or less, depending on screen size */
+			position: relative;
         }
 
         /* Close Button */
         .close {
             color: #aaa;
-            float: right;
+            /* float: right; */
+			position: absolute;
+			right: 10px;
+			/* top: 10px; */
             font-size: 28px;
             font-weight: bold;
         }
@@ -609,7 +589,7 @@
         }
 
             .des-opacity .des-content {
-                top: 60px;
+                top: 25vh;
             }
 
         #des-imageSpace {
@@ -622,7 +602,7 @@
             justify-content: center;
             color: white; /* Text color set to white */
             padding: 10px 20px;
-            transition: opacity 1.5s;
+            transition: .4s;
             opacity: 0;
             position: relative;
         }
@@ -757,61 +737,124 @@
         }
 
         .des-content {
-            position: relative;
-            width: 100%;
-            top: 80px;
+			position: fixed;
+			width: 50vw;
+            top: 25vh;
             transition: 1s;
-            background-color: rgba(255,255,255,0.85);
+            background-color: rgba(255,255,255);
+			opacity: 0.95;
             color: black;
             border-radius: 10px;
-            padding: 15px;
+            padding: 35px;
+			padding-top: 20px;
+			border: 1px solid #999;
+			border-top: 35px solid #00114fc7 !important;
             margin-bottom: 150px;
+			z-index: 10;
         }
-        
+		.contentTitle{
+			color: #000;
+			font-size: 40px;
+		}
+		.contentBox{
+			box-shadow: 0px 2px 10px 5px rgba(0,0,0,0.15), -1px -1px 10px -1px rgba(255,255,255,0.7);
+			border: 15px solid #f8f8f8;
+			padding: 50px;
+			display: flex; 
+			flex-direction: column; 
+			align-items: center;
+			width: calc(100% - 240px);
+			margin: 0 auto;
+		}
+		.insightContent{
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: space-around;
+			height: 410px;
+			/* background-color: #00114fc7; */
+			color: #fff;
+			transition: .3s;
+			cursor: pointer;
+		}
+		.insightContent h2{
+			transition: .3s;
+		}
+		.insightContent:hover h2{
+			font-size: 26px;
+		}
+		.insightContent:hover{
+			background-color: #00000052;
+			/* opacity: 0.5; */
+		}
+		.insHidden{
+			display: none;
+		}
+		.insShow{
+			display: block;
+		}
     </style>
 </head>
 
 <body>
-    <div class="header-background" style="margin-bottom: 20px;">
+    <div class="header-background" style="margin-bottom: 20px;height: calc(100vh - 20px);">
         <div class="top" style="display: flex;">
             <span class="text-white" style="font-size: 42px;font-weight: 700;"> Forecaster Fox </span>
 
-            
-            <div class="button-container" style="float: right;">
+
+            <div class="button-container">
+				<div class="upload-button insBtn insHidden" style="color: #fff;font-size: 16px;margin-right: 50px;cursor: pointer;">
+					Instructions
+				</div>
                 <!-- Trigger/Open The Modal -->
-            <div id="btnOpenModal" class="upload-button" style="margin-right:50px; margin-top: -70px;">
-                <img class="uploadIcon" src="https://raw.githubusercontent.com/jber0020/DS-Project/main/app/templates/upload.png" style="width: 18px;margin-right: 5px;">
-                <span>Upload</span>
-            </div>
-                <a href="https://github.com/jber0020/DS-Project" target="_blank" style="margin-top: -80px;">
+                <div id="btnOpenModal" class="upload-button" style="margin-right:50px;">
+                    <img class="uploadIcon" src="https://raw.githubusercontent.com/jber0020/DS-Project/main/app/templates/upload.png" style="width: 18px;margin-right: 5px;">
+                    <span>Upload</span>
+                </div>
+                <a href="https://github.com/jber0020/DS-Project" target="_blank">
                     <button class="btn" style="height: 80px; width: 80px;">
                         <svg id="github" viewBox="0 0 24 24" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" fill="#0092E4" height="40" width="40">
                             <path d="M12,2.2467A10.00042,10.00042,0,0,0,8.83752,21.73419c.5.08752.6875-.21247.6875-.475,0-.23749-.01251-1.025-.01251-1.86249C7,19.85919,6.35,18.78423,6.15,18.22173A3.636,3.636,0,0,0,5.125,16.8092c-.35-.1875-.85-.65-.01251-.66248A2.00117,2.00117,0,0,1,6.65,17.17169a2.13742,2.13742,0,0,0,2.91248.825A2.10376,2.10376,0,0,1,10.2,16.65923c-2.225-.25-4.55-1.11254-4.55-4.9375a3.89187,3.89187,0,0,1,1.025-2.6875,3.59373,3.59373,0,0,1,.1-2.65s.83747-.26251,2.75,1.025a9.42747,9.42747,0,0,1,5,0c1.91248-1.3,2.75-1.025,2.75-1.025a3.59323,3.59323,0,0,1,.1,2.65,3.869,3.869,0,0,1,1.025,2.6875c0,3.83747-2.33752,4.6875-4.5625,4.9375a2.36814,2.36814,0,0,1,.675,1.85c0,1.33752-.01251,2.41248-.01251,2.75,0,.26251.1875.575.6875.475A10.0053,10.0053,0,0,0,12,2.2467Z"></path>
                         </svg>
                     </button>
                 </a>
-    
+
             </div>
         </div>
         <br />
 
-        
+
         <!-- The Modal -->
         <div id="myModal" class="modal">
 
             <!-- Modal content -->
-            <div class="modal-content" style="height: 200px;">
-                <span class="close">&times;</span>
-            
-                
-                <label class="custom-file-upload" for="file">
+            <div class="modal-content" style="height: 200px;border-radius: 8px;">
+				<div style="
+					width: 100%;
+					height: 30px;
+					background-color: #00114fc7;
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 0 10px;
+					color: #fff;
+					border-top-left-radius: 8px;
+					border-top-right-radius: 8px;
+					box-sizing: border-box;">
+					<span>Click to upload data</span>
+					<span class="close">&times;</span>
+				</div>
+
+
+                <label class="custom-file-upload" for="file" style="height: calc(100% - 30px);">
                     <div class="icon">
                         <!-- ... your SVG ... -->
                     </div>
-                    <div class="text">
-                        <span>Click to upload data</span>
-                    </div>
-                    <input type="file" id="file"> <!-- We'll attach an event to this input -->
+					<div style="border: 10px solid #d0caca;margin: 5px;height: 80%;display: flex;align-items: center;justify-content: center;flex-direction: column;">
+						<img src="upload.png" style="width:60px;margin-bottom: 5px;">
+						<span style="font-size: 12px;color: #d0caca;font-weight: 600;">请注明上传文件格式</span>
+						<input type="file" id="file" style="visibility: hidden;"> <!-- We'll attach an event to this input -->
+					</div>
                 </label>
             </div>
 
@@ -819,15 +862,15 @@
         <div id="backgroundSection">
             <div id="des-imageSpace">
                 <div class="des-content" style="color:black; text-align: center;">
-                    <div style="font-size: larger; color: black; font-weight: 900;">
-                        Welcome to Forecaster Fox! 
+                    <div style="font-size: 23px; color: black; font-weight: 900;">
+                        Welcome to Forecaster Fox!
                         <br>
-                        Your webapp for generating electricity demand forecasts and insights. 
+                        Your webapp for generating electricity demand forecasts and insights.
                     </div>
                     <br>
                     <br>
-                    To get started:
-                    <ol style="text-align: left;">
+					<div style="font-size: 20px; color: #000;">To get started:</div>
+                    <ol style="text-align: left;font-size: 18px;">
                         <li>
                             Upload a zip file containing the load actuals for the previous day, and the weather forecasts for the upcoming day.
                         </li>
@@ -838,140 +881,175 @@
                             Navigate to the bottom of the page to discover insights, or ask FoxBot for more tailored insights.
                         </li>
                     </ol>
+					<div class="closeBtn" style="
+						padding: 3px 10px;
+						border-radius: 5px;
+						border: 1px solid #000;
+						display: inline-block;
+						font-size: 16px;
+						cursor: pointer;
+						user-select: none;
+						color: #000;">close
+					</div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Forecasts/Historical Section -->
-<div id="content" style="background-color: #fff; padding-top: 30px; padding-bottom: 30px;">
-    <div class="center" style="display: flex; align-items: center; justify-content: center;">
-        <span id="ForecastSection">Forecasts</span>
-    </div>
+    <div id="content" style="background-color: #fff; padding-top: 30px; padding-bottom: 30px;">
+        <div class="center" style="display: flex; align-items: center; justify-content: center;">
+            <span id="ForecastSection" class="contentTitle">Forecasts</span>
+        </div>
 
-    <div id="imageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
-        <!-- Add a canvas here to render the chart -->
-        <canvas id="forecastChart"></canvas>
-        <div>
-            <span>
-                <div class="pyramid-loader">
-                    <div class="wrapper">
-                        <span class="side side1"></span>
-                        <span class="side side2"></span>
-                        <span class="side side3"></span>
-                        <span class="side side4"></span>
-                        <span class="shadow"></span>
+        <div id="imageSpace" class="contentBox">
+            <!-- Add a canvas here to render the chart -->
+            <canvas id="forecastChart"></canvas>
+            <div>
+                <span>
+                    <div class="pyramid-loader">
+                        <div class="wrapper">
+                            <span class="side side1"></span>
+                            <span class="side side2"></span>
+                            <span class="side side3"></span>
+                            <span class="side side4"></span>
+                            <span class="shadow"></span>
+                        </div>
                     </div>
-                </div>
-            </span>
+                </span>
+            </div>
         </div>
     </div>
-</div>
 
 
 
-<!-- Insights Section -->
-<div id="content" style="background-color: #fff; padding-top: 30px;">
-    <!-- Title Section -->
-    <div class="center" style="display: flex; align-items: center; justify-content: center;">
-        <span>History</span>
-    </div>
+    <!-- Insights Section -->
+    <div id="content" style="background-color: #fff; padding-top: 30px;">
+        <!-- Title Section -->
+        <div class="center" style="display: flex; align-items: center; justify-content: center;">
+            <span class="contentTitle">History</span>
+        </div>
 
-    <!-- Date Selection Section -->
-    <div style="text-align:center; margin: 20px;">
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate">
+        <!-- Date Selection Section -->
+        <div style="text-align:center; margin: 20px;display: flex;justify-content: center;align-items: center;">
+			<div style="display: flex;justify-content: center;align-items: center;margin-right: 15px;">
+				<label for="startDate" style="margin: 0 15px 0 0;">Start Date:</label>
+				<input type="date" id="startDate">
+			</div>
+			<div style="display: flex;justify-content: center;align-items: center;">
+				<label for="endDate"  style="margin: 0 15px 0 0;">End Date:</label>
+				<input type="date" id="endDate">
+			</div>
+            <button onclick="fetchInsightsData()" style="
+				width: auto;
+				margin-left: 20px;
+				padding: 5px 10px;
+				font-size: 12px;
+				display: flex;
+				align-items: center;
+				border-radius: 4px;">
+				<img src="search.png" style="width: 14px;margin-right: 5px;">
+				<span>GET DATA</span>
+			</button>
+        </div>
 
-        <label for="endDate" style="margin-left: 20px;">End Date:</label>
-        <input type="date" id="endDate">
-
-        <button onclick="fetchInsightsData()" style="margin-left: 20px;">GET DATA</button>
-    </div>
-
-    <!-- Image/Chart Space -->
-    <div id="insightImageSpace" style="border: 15px solid #f8f8f8; padding: 50px; display: flex; flex-direction: column; align-items: center;">
-        <canvas id="insightChart"></canvas>
-        <div>
-            <span>
-                <div class="pyramid-loader">
-                    <div class="wrapper">
-                        <span class="side side1"></span>
-                        <span class="side side2"></span>
-                        <span class="side side3"></span>
-                        <span class="side side4"></span>
-                        <span class="shadow"></span>
+        <!-- Image/Chart Space -->
+        <div id="insightImageSpace" class="contentBox" style="margin-bottom: 30px;">
+            <canvas id="insightChart"></canvas>
+            <div>
+                <span>
+                    <div class="pyramid-loader">
+                        <div class="wrapper">
+                            <span class="side side1"></span>
+                            <span class="side side2"></span>
+                            <span class="side side3"></span>
+                            <span class="side side4"></span>
+                            <span class="shadow"></span>
+                        </div>
                     </div>
-                </div>
-            </span>
+                </span>
+            </div>
         </div>
     </div>
-</div>
-        
 
-        <div class="center" style="background-color: white; padding: 5px; padding-top: 10px;">Insights <span class="date-range">(Yesterday / Today / Tomorrow)</span></div>
-        <div id="dataInsightsSpace" style="background-color: white;">
-            
-            <!-- Max Demand -->
-            <div class="insight-box">
-                <h2>Maximum Demand (kW)</h2>
-                <div class="values">
-                    <span id="yesterday_max"></span> / <strong id="today_max"></strong> / <span id="tomorrow_max">.</span>
-                </div>
-            </div>
-        
-            <!-- Min Demand -->
-            <div class="insight-box">
-                <h2>Minimum Demand (kW)</h2>
-                <div class="values">
-                    <span id="yesterday_min"></span> / <strong id="today_min"></strong> / <span id="tomorrow_min"></span>
-                </div>
-            </div>
-        
-            <!-- Average Demand -->
-            <div class="insight-box">
-                <h2>Average Demand (kW)</h2>
-                <div class="values">
-                    <span id="yesterday_avg"></span> / <strong id="today_avg"></strong> / <span id="tomorrow_avg"></span>
-                </div>
-            </div>
-        
-            <!-- Weekly Average -->
-            <div class="insight-box">
-                <h2>Weekly Average (kW)</h2>
-                <div class="values">
-                    <strong id="weekly_avg"></strong>
-                </div>
-            </div>
-            
-            <!-- Monthly Average -->
-            <div class="insight-box">
-                <h2>Monthly Average (kW)</h2>
-                <div class="values">
-                    <strong id="monthly_avg"></strong>
-                </div>
-            </div>
-            
-            <!-- Yearly Average -->
-            <div class="insight-box">
-                <h2>Yearly Average (kW)</h2>
-                <div class="values">
-                    <strong id="yearly_avg"></strong>
-                </div>
-            </div>
-            
-        </div>
-        
-        <br />
-        <br />
-        <br />
-        <br />
+	<div style="background-color: #fff; padding-top: 30px;">
+		<div class="center contentTitle" style="margin-bottom: 30px;">Insights <span class="date-range" style="color: #8f8c8c;">(Yesterday / Today / Tomorrow)</span></div>
+		<div id=""  class="" style="display: flex;flex-direction: unset;justify-content: space-around;">
+			<div style="background-color: #00114fc7;">
+				<div class="insightContent">
+					<!-- Max Demand -->
+					<div class="insight-box">
+					    <h2>Maximum Demand (kW)</h2>
+					    <div class="values">
+					        <span id="yesterday_max"></span> / <strong id="today_max"></strong> / <span id="tomorrow_max"></span>
+					    </div>
+					</div>
+							
+					<!-- Weekly Average -->
+					<div class="insight-box">
+					    <h2>Weekly Average (kW)</h2>
+					    <div class="values">
+					        <strong id="weekly_avg"></strong>
+					    </div>
+					</div>
+				</div>
+			</div>
+		    
+			<div style="background-color: #00114fc7;">
+				<div class="insightContent">
+					<!-- Min Demand -->
+					<div class="insight-box">
+					    <h2>Minimum Demand (kW)</h2>
+					    <div class="values">
+					        <span id="yesterday_min"></span> / <strong id="today_min"></strong> / <span id="tomorrow_min"></span>
+					    </div>
+					</div>
+					<!-- Monthly Average -->
+					<div class="insight-box">
+					    <h2>Monthly Average (kW)</h2>
+					    <div class="values">
+					        <strong id="monthly_avg"></strong>
+					    </div>
+					</div>		
+				</div>
+			</div>
+			
+		   <div style="background-color: #00114fc7;">
+			   <div class="insightContent">
+			   	<!-- Average Demand -->
+			   	<div class="insight-box">
+			   	    <h2>Average Demand (kW)</h2>
+			   	    <div class="values">
+			   	        <span id="yesterday_avg"></span> / <strong id="today_avg"></strong> / <span id="tomorrow_avg"></span>
+			   	    </div>
+			   	</div>
+			   			
+			   	<!-- Yearly Average -->
+			   	<div class="insight-box">
+			   	    <h2>Yearly Average (kW)</h2>
+			   	    <div class="values">
+			   	        <strong id="yearly_avg"></strong>
+			   	    </div>
+			   	</div>
+			   </div>
+		   </div>
+			
+		</div>
+	</div>
+    
+
+    <br />
+    <br />
+    <br />
+    <br />
     </div>
 
     <div id="chatbox">
         <div id="chat-header">
             <button onclick="toggleChat()" aria-label="Toggle Chat" style="width:100%;">FoxBot</button>
         </div>
-        <div id="chat-content" style="display: none;">  <!-- Initially hidden -->
+        <div id="chat-content" style="display: none;">
+            <!-- Initially hidden -->
             <div id="messages"></div>
             <input type="text" id="user-input" placeholder="Type a message..." />
             <button onclick="sendMessage()" aria-label="Send Message">Send</button>
@@ -988,7 +1066,29 @@
 
         // Get the <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
+		
+		var closeBtn = document.getElementsByClassName("closeBtn")[0];
+		
+		var desContent = document.getElementsByClassName("des-content")[0];
+		
+		var insBtn = document.getElementsByClassName("insBtn")[0];
+		
+		var des = document.querySelector('#des-imageSpace');
+		
+		closeBtn.onclick = function () {
+            desContent.style.top = "0";
+            desContent.style.pointerEvents = "none"; // Add this line
+            insBtn.className = "upload-button insShow";
+            des.className = '';
+        }
 
+        insBtn.onclick = function () {
+            desContent.style.top = "25vh";
+            desContent.style.pointerEvents = "auto"; // Add this line
+            insBtn.className = "upload-button insHidden";
+            des.className = 'des-opacity';
+        }
+		
         // When the user clicks the button, open the modal
         btn.onclick = function () {
             modal.style.display = "block";
@@ -1022,315 +1122,309 @@
                 modal.style.display = "none";
             }
         }
-async function uploadFile() {
-    const fileInput = document.getElementById('file');
-    const file = fileInput.files[0];
+        async function uploadFile() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
 
-    if (file && ['csv', 'xlsx', 'xls', 'zip'].includes(file.name.split('.').pop().toLowerCase())) {
-        const formData = new FormData();
-        formData.append('file', file);
+            if (file && ['csv', 'xlsx', 'xls', 'zip'].includes(file.name.split('.').pop().toLowerCase())) {
+                const formData = new FormData();
+                formData.append('file', file);
 
-        try {
-            let response = await fetch('/api/upload_files', {
-                method: 'POST',
-                body: formData,
-            });
+                try {
+                    let response = await fetch('/api/upload_files', {
+                        method: 'POST',
+                        body: formData,
+                    });
 
-            if (!response.ok) {
-                console.error('Error:', response.status, response.statusText);
-                throw new Error('Network response was not ok');
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    let data = await response.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    // Reformat the data for the chart
+                    const formattedData = data.data.map(row => {
+                        return {
+                            forecast: row.forecasts,  // Extract 'forecasts' value
+                            date: row.time            // Extract 'time' value
+                        };
+                    });
+
+                    renderChart(formattedData);
+
+                    // Fetch the data insights once the chart data is fetched and rendered
+                    await fetchDataInsights(file.name);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while uploading the file.');
+                }
+            } else {
+                alert('Invalid file type. Please upload a ZIP, CSV or Excel file.');
             }
-
-            let data = await response.json();
-            
-            if(data.error) {
-                alert(data.error);
-                return;
-            }
-
-            // Reformat the data for the chart
-            const formattedData = data.data.map(row => {
-                return {
-                    forecast: row.forecasts,  // Extract 'forecasts' value
-                    date: row.time            // Extract 'time' value
-                };
-            });
-
-            renderChart(formattedData);
-
-            // Fetch the data insights once the chart data is fetched and rendered
-            await fetchDataInsights(file.name);
-
-        } catch (error) {
-            console.error('Error:', error.message, '\n', error.stack);
-            alert('An error occurred while uploading the file.');
         }
-    } else {
-        alert('Invalid file type. Please upload a ZIP, CSV or Excel file.');
-    }
-}
 
-let myChart = null;
+        function renderChart(data) {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
 
-function renderChart(data) {
-    const ctx = document.getElementById('forecastChart').getContext('2d');
+            const labels = data.map(d => moment(d.date, 'ddd, DD MMM YYYY HH:mm:ss GMT').toDate());
+            const forecastValues = data.map(d => d.forecast);
 
-    // Destroy the previous chart instance if it exists
-    if (myChart) {
-        myChart.destroy();
-    }
-    
-    const labels = data.map(d => moment(d.date, 'ddd, DD MMM YYYY HH:mm:ss GMT').toDate());
-    const forecastValues = data.map(d => d.forecast);
-    
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-            label: 'Forecast',
-            data: forecastValues,
-            borderColor: 'rgba(75, 192, 192, 1)',  // Cyan color
-            fill: false,
-            pointRadius: 5, // Increase the size of the points
-        }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                zoom: {
-                    pan: {
-                        enabled: true,
-                        mode: 'xy'
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Forecast',
+                        data: forecastValues,
+                        borderColor: 'rgba(75, 192, 192, 1)',  // Cyan color
+                        fill: false,
+                        pointRadius: 5, // Increase the size of the points
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy'
+                            },
+                            zoom: {
+                                enabled: true,
+                                mode: 'xy',
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    var label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     },
-                    zoom: {
-                        enabled: true,
-                        mode: 'xy',
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'HH:mm'
+                                }
                             }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y;
-                            }
-                            return label;
+                        },
+                        y: {
+                            // beginAtZero: true,
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'hour',
-                        displayFormats: {
-                            hour: 'HH:mm'
-                        }
-                    }
-                },
-                y: {
-                    // beginAtZero: true,
-                }
-            }
+            });
+            document.querySelector("#imageSpace .pyramid-loader").style.display = "none";
+
         }
-    });
-    document.querySelector("#imageSpace .pyramid-loader").style.display = "none";
-}
 
         // Attach the function to input file change event
         document.getElementById('file').addEventListener('change', uploadFile);
 
-function fetchInsightsData() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
 
-    if (!startDate || !endDate) {
-        alert('Please select both start and end dates.');
-        return;
-    }
+        function fetchInsightsData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
 
-    fetch('/api/get_historical_actuals_and_forecasts', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            startDate: startDate,
-            endDate: endDate
-        })
-    })
-    .then(response => response.json())
-    .then(data => renderInsightChart(data))
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while fetching the data.');
-    });
-}
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
 
-let currentChart = null;
-
-function renderInsightChart(data) {
-    const ctx = document.getElementById('insightChart').getContext('2d');
-    
-    if (currentChart) {
-        currentChart.destroy();
-    }
-
-    const labels = data.map(d => moment(d.time, 'ddd, DD MMM YYYY HH:mm:ss [GMT]').toDate());
-    const actualValues = data.map(d => d.actual_load_kw);
-    const forecast1Values = data.map(d => d.forecast_forecast_1);
-    const forecast2Values = data.map(d => d.forecast_forecast_2);
-
-    // Determine min and max values for axes
-    const minDate = new Date(Math.min(...labels));
-    const maxDate = new Date(Math.max(...labels));
-
-    const allValues = [...actualValues, ...forecast1Values, ...forecast2Values];
-    const minYValue = Math.min(...allValues);
-    const maxYValue = Math.max(...allValues);
-    console.log(minDate, maxDate, minYValue, maxYValue);
-
-
-    currentChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Actual Load',
-                    data: actualValues,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    fill: false,
+            fetch('/api/get_historical_actuals_and_forecasts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                {
-                    label: 'Forecast 1',
-                    data: forecast1Values,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    fill: false,
-                },
-                {
-                    label: 'Forecast 2',
-                    data: forecast2Values,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    fill: false,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day',
-                        displayFormats: {
-                            day: 'MMM DD, YYYY'
+                body: JSON.stringify({
+                    startDate: startDate,
+                    endDate: endDate
+                })
+            })
+                .then(response => response.json())
+                .then(data => renderInsightChart(data))
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while fetching the data.');
+                });
+        }
+
+        let currentChart = null;
+
+        function renderInsightChart(data) {
+            const ctx = document.getElementById('insightChart').getContext('2d');
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const labels = data.map(d => moment(d.time, 'ddd, DD MMM YYYY HH:mm:ss [GMT]').toDate());
+            const actualValues = data.map(d => d.actual_load_kw);
+            const forecast1Values = data.map(d => d.forecast_forecast_1);
+            const forecast2Values = data.map(d => d.forecast_forecast_2);
+
+            // Determine min and max values for axes
+            const minDate = new Date(Math.min(...labels));
+            const maxDate = new Date(Math.max(...labels));
+
+            const allValues = [...actualValues, ...forecast1Values, ...forecast2Values];
+            const minYValue = Math.min(...allValues);
+            const maxYValue = Math.max(...allValues);
+            console.log(minDate, maxDate, minYValue, maxYValue);
+
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Actual Load',
+                            data: actualValues,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: false,
                         },
-                        min: minDate,
-                        max: maxDate
-                    }
+                        {
+                            label: 'Forecast 1',
+                            data: forecast1Values,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            fill: false,
+                        },
+                        {
+                            label: 'Forecast 2',
+                            data: forecast2Values,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            fill: false,
+                        }
+                    ]
                 },
-                y: {
-                    // beginAtZero: true,
-                    ticks: {
-                        min: minYValue,
-                        max: maxYValue
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                displayFormats: {
+                                    day: 'MMM DD, YYYY'
+                                },
+                                min: minDate,
+                                max: maxDate
+                            }
+                        },
+                        y: {
+                            // beginAtZero: true,
+                            ticks: {
+                                min: minYValue,
+                                max: maxYValue
+                            }
+                        }
                     }
                 }
+
+            });
+
+            document.querySelector("#insightImageSpace .pyramid-loader").style.display = "none";
+        }
+
+        async function fetchDataInsights(filename) {
+            try {
+                let response = await fetch(`/api/data-insights?filename=${filename}`);
+
+                // If the response is not ok (e.g., status code is not in the 200-299 range), throw an error
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                let data = await response.json();
+
+                // Update the frontend with the received data:
+                document.getElementById("yesterday_max").innerText = data.yesterday_max;
+                document.getElementById("today_max").innerText = data.today_max;
+                document.getElementById("tomorrow_max").innerText = data.tomorrow_max;
+
+                document.getElementById("yesterday_min").innerText = data.yesterday_min;
+                document.getElementById("today_min").innerText = data.today_min;
+                document.getElementById("tomorrow_min").innerText = data.tomorrow_min;
+
+                document.getElementById("yesterday_avg").innerText = data.yesterday_avg;
+                document.getElementById("today_avg").innerText = data.today_avg;
+                document.getElementById("tomorrow_avg").innerText = data.tomorrow_avg;
+
+                document.getElementById("weekly_avg").innerText = data.weekly_avg;
+                document.getElementById("monthly_avg").innerText = data.monthly_avg;
+                document.getElementById("yearly_avg").innerText = data.yearly_avg;
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert("There was a problem fetching the data insights. Please try again.");
             }
         }
 
-    });
-
-    document.querySelector("#insightImageSpace .pyramid-loader").style.display = "none";
-}
-
-async function fetchDataInsights(filename) {
-    try {
-        let response = await fetch(`/api/data-insights?filename=${filename}`);
-
-        // If the response is not ok (e.g., status code is not in the 200-299 range), throw an error
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        function toggleChat() {
+            const chatContent = document.getElementById('chat-content');
+            if (chatContent.style.display === 'none') {
+                chatContent.style.display = 'block';
+            } else {
+                chatContent.style.display = 'none';
+            }
         }
 
-        let data = await response.json();
 
-        // Update the frontend with the received data:
-        document.getElementById("yesterday_max").innerText = data.yesterday_max;
-        document.getElementById("today_max").innerText = data.today_max;
-        document.getElementById("tomorrow_max").innerText = data.tomorrow_max;
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;  // Don't send empty messages
 
-        document.getElementById("yesterday_min").innerText = data.yesterday_min;
-        document.getElementById("today_min").innerText = data.today_min;
-        document.getElementById("tomorrow_min").innerText = data.tomorrow_min;
+            const messageContainer = document.getElementById('messages');
 
-        document.getElementById("yesterday_avg").innerText = data.yesterday_avg;
-        document.getElementById("today_avg").innerText = data.today_avg;
-        document.getElementById("tomorrow_avg").innerText = data.tomorrow_avg;
+            // Display user message
+            messageContainer.innerHTML += `<div class="user-message">${userInput}</div>`;
 
-        document.getElementById("weekly_avg").innerText = data.weekly_avg;
-        document.getElementById("monthly_avg").innerText = data.monthly_avg;
-        document.getElementById("yearly_avg").innerText = data.yearly_avg;
+            // Send user message to server
+            try {
+                const response = await fetch('/chatbot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: userInput })
+                });
 
-    } catch (error) {
-        console.error('Fetch error:', error);
-        alert("There was a problem fetching the data insights. Please try again.");
-    }
-}
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
 
-function toggleChat() {
-    const chatContent = document.getElementById('chat-content');
-    if (chatContent.style.display === 'none') {
-        chatContent.style.display = 'block';
-    } else {
-        chatContent.style.display = 'none';
-    }
-}
+                const data = await response.json();
 
+                // Display server response
+                messageContainer.innerHTML += `<div class="server-message">${data.response}</div>`;
+            } catch (error) {
+                console.error('Error:', error);
+                messageContainer.innerHTML += `<div class="server-message">Error: ${error.message}</div>`;
+            }
 
-async function sendMessage() {
-    const userInput = document.getElementById('user-input').value;
-    if (userInput.trim() === '') return;  // Don't send empty messages
-    
-    const messageContainer = document.getElementById('messages');
-    
-    // Display user message
-    messageContainer.innerHTML += `<div class="user-message">${userInput}</div>`;
-    
-    // Send user message to server
-    try {
-        const response = await fetch('/chatbot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: userInput })
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+            document.getElementById('user-input').value = '';  // Clear user input
+            messageContainer.scrollTop = messageContainer.scrollHeight;
         }
 
-    const data = await response.json();
-        
-        // Display server response
-        messageContainer.innerHTML += `<div class="server-message">${data.response}</div>`;
-    } catch (error) {
-        console.error('Error:', error);
-        messageContainer.innerHTML += `<div class="server-message">Error: ${error.message}</div>`;
-    }
-    
-    document.getElementById('user-input').value = '';  // Clear user input
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-}
 
-
-</script>
+    </script>
 </body>
 </html>
