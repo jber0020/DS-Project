@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - db_upload
+      - ryan
 
 jobs:
   build_and_push:

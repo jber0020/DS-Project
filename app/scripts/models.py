@@ -23,6 +23,23 @@ from sklearn.feature_selection import mutual_info_regression
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
 import math
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+import os
+
+account_name = 'ds4sa'
+account_key = 'smgX0hJb9tM8fzuXiY1Y51IsqMee3erpefObcurC+Xk1wIvX4G4CdoueJma53nQuv+8k0FIkePgt+AStXfk4BQ=='
+blob_service_client = BlobServiceClient(account_url=f"https://{account_name}.blob.core.windows.net", credential=account_key)
+
+def upload_to_blob(file_name, container_name, blob_service_client):
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=file_name)
+    with open(file_name, "rb") as data:
+        blob_client.upload_blob(data, overwrite=True)
+
+def download_from_blob(file_name, container_name, blob_service_client):
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=file_name)
+    with open(file_name, "wb") as my_blob:
+        blob_data = blob_client.download_blob()
+        blob_data.readinto(my_blob)
 
 def feature_selection(data:pd.DataFrame) -> pd.Series:
     # Seperate Data into Dependent and Independent Variables
@@ -64,15 +81,32 @@ def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
     # Normalisation
     normalised_columns = ~data.columns.isin(['hour', 'month',"load_kw"])
     if initial:
-        data.loc[:,normalised_columns].mean().to_csv(get_root("scripts/means.csv"))
-        data.loc[:,normalised_columns].std().to_csv(get_root('scripts/stds.csv'))
+        data.loc[:,normalised_columns].mean().to_csv("means.csv")
+        data.loc[:,normalised_columns].std().to_csv("stds.csv")
+        
+        # Upload to Azure Blob Storage
+        upload_to_blob("means.csv", "csvs", blob_service_client)
+        upload_to_blob("stds.csv", "csvs", blob_service_client)
+        
+        # Remove local files
+        os.remove("means.csv")
+        os.remove("stds.csv")
+        
         data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-data.loc[:,normalised_columns].mean()) / data.loc[:,normalised_columns].std()
     else:
-        means = pd.read_csv(get_root('scripts/means.csv'), index_col=0)
+        # Download from Azure Blob Storage
+        download_from_blob("means.csv", "csvs", blob_service_client)
+        download_from_blob("stds.csv", "csvs", blob_service_client)
+        
+        means = pd.read_csv("means.csv", index_col=0)
         means = means.astype(float)
-        stds = pd.read_csv(get_root('scripts/stds.csv'), index_col=0)
+        stds = pd.read_csv("stds.csv", index_col=0)
         stds = stds.astype(float)
         data.loc[:,normalised_columns] = (data.loc[:,normalised_columns]-means.iloc[:,0]) / stds.iloc[:,0]
+        
+        # Remove local files
+        os.remove("means.csv")
+        os.remove("stds.csv")
     # Sine/Cosine Encoding
     data['hour_sin'] = np.sin(data['hour'] * 2 * np.pi / 24)
     data['hour_cos'] = np.cos(data['hour'] * 2 * np.pi / 24)
@@ -84,7 +118,10 @@ def preprocessing(df:pd.DataFrame, initial=False) -> pd.DataFrame:
 
 class xgBoostForecaster:
     def __init__(self) -> None:
-        pass
+        self.account_name = 'ds4sa'
+        self.account_key = 'smgX0hJb9tM8fzuXiY1Y51IsqMee3erpefObcurC+Xk1wIvX4G4CdoueJma53nQuv+8k0FIkePgt+AStXfk4BQ=='
+        self.container_name = 'models'
+        self.blob_service_client = BlobServiceClient(account_url=f"https://{self.account_name}.blob.core.windows.net", credential=self.account_key)
 
     def build_model(self, n_estimators=100, max_depth=3, learning_rate=0.1) -> None:
         # Set parameters
@@ -113,11 +150,32 @@ class xgBoostForecaster:
         return self.model.predict(x)
 
     def save_model(self, name, filepath):
-        self.model.save_model(get_root('{}/{}.model'.format(filepath, name)))
+        # Save the model to a temporary file
+        temp_file = f"{name}.model"
+        self.model.save_model(temp_file)
+        
+        # Upload the model to Azure Blob Storage
+        blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=temp_file)
+        with open(temp_file, "rb") as data:
+            blob_client.upload_blob(data, overwrite=True)
+        
+        # Remove the temporary file
+        os.remove(temp_file)
 
     def load_model(self, name, filepath):
+        # Download the model from Azure Blob Storage to a temporary file
+        temp_file = f"{name}.model"
+        blob_client = self.blob_service_client.get_blob_client(container=self.container_name, blob=temp_file)
+        with open(temp_file, "wb") as my_blob:
+            blob_data = blob_client.download_blob()
+            blob_data.readinto(my_blob)
+        
+        # Load the model from the temporary file
         self.build_model()
-        self.model.load_model(get_root('{}/{}.model'.format(filepath, name)))
+        self.model.load_model(temp_file)
+        
+        # Remove the temporary file
+        os.remove(temp_file)
 
 class NeuralNetForecaster:
     def __init__(self) -> None:
@@ -255,6 +313,7 @@ def retraining_required(data) -> bool:
     """
     naive_mse = mean_squared_error(data['load_kw'], data['lagged_load_kw'])
     model_mse = mean_squared_error(data['load_kw'], data['forecast'])
+    print(f"naive: {naive_mse}, model: {model_mse}")
     if model_mse > naive_mse:
         return True
     else:
